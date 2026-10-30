@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import type { PeekMenuItem, PeekMenuRect } from '../types';
 
@@ -35,7 +36,7 @@ export function PeekMenuProvider({ children }: PeekMenuProviderProps) {
 
   return (
     <PeekMenuControlsContext.Provider value={controls}>
-      <View style={styles.root}>
+      <GestureHandlerRootView style={styles.root}>
         {children}
         {activeMenu && (
           <Pressable
@@ -45,7 +46,7 @@ export function PeekMenuProvider({ children }: PeekMenuProviderProps) {
             style={styles.backdrop}
           />
         )}
-      </View>
+      </GestureHandlerRootView>
     </PeekMenuControlsContext.Provider>
   );
 }

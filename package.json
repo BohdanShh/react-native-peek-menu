@@ -35,7 +35,10 @@
   "bugs": "https://github.com/BohdanShh/react-native-peek-menu/issues",
   "peerDependencies": {
     "react": "*",
-    "react-native": "*"
+    "react-native": "*",
+    "react-native-gesture-handler": ">=3.3.0",
+    "react-native-reanimated": ">=4.7.0",
+    "react-native-worklets": ">=0.13.0"
   },
   "devDependencies": {
     "@types/react": "^19.3.0",

@@ -1,7 +1,10 @@
-import { useRef, type ComponentRef, type ReactNode } from 'react';
-import { Pressable, type View } from 'react-native';
+import type { ReactNode } from 'react';
+import type { View } from 'react-native';
+import { GestureDetector } from 'react-native-gesture-handler';
+import Animated, { useAnimatedRef } from 'react-native-reanimated';
 
 import { usePeekMenu } from './PeekMenuProvider';
+import { useHold } from '../hooks/useHold';
 import type { PeekMenuItem } from '../types';
 
 export type PeekMenuProps = {
@@ -11,17 +14,24 @@ export type PeekMenuProps = {
 
 export function PeekMenu({ items, children }: PeekMenuProps) {
   const { open } = usePeekMenu();
-  const ref = useRef<ComponentRef<typeof View>>(null);
+  const ref = useAnimatedRef<View>();
 
-  const handleLongPress = () => {
-    ref.current?.measureInWindow((x, y, width, height) => {
-      open({ items, rect: { x, y, width, height } });
+  const { gesture, animatedStyle, width } = useHold(() => {
+    ref.current?.measureInWindow((x, y, measuredWidth, height) => {
+      open({ items, rect: { x, y, width: measuredWidth, height } });
     });
-  };
+  });
 
   return (
-    <Pressable ref={ref} onLongPress={handleLongPress}>
-      {children}
-    </Pressable>
+    <GestureDetector gesture={gesture}>
+      {/* The scale stays on an inner view so it doesn't skew the measured rect. */}
+      <Animated.View
+        ref={ref}
+        collapsable={false}
+        onLayout={(event) => width.set(event.nativeEvent.layout.width)}
+      >
+        <Animated.View style={animatedStyle}>{children}</Animated.View>
+      </Animated.View>
+    </GestureDetector>
   );
 }
