@@ -1,0 +1,45 @@
+{
+  "name": "react-native-peek-menu",
+  "version": "0.1.0",
+  "description": "Telegram-style context menu for React Native with long-press previews and shared-element transitions.",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "sideEffects": false,
+  "files": [
+    "lib",
+    "src"
+  ],
+  "scripts": {
+    "build": "rm -rf lib && tsc",
+    "prepublishOnly": "bun run build",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "keywords": [
+    "react-native",
+    "context-menu",
+    "long-press",
+    "preview",
+    "haptic",
+    "blur",
+    "shared-element-transition",
+    "telegram"
+  ],
+  "author": "BohdanShh <bohdanshh.dev@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BohdanShh/react-native-peek-menu.git"
+  },
+  "homepage": "https://github.com/BohdanShh/react-native-peek-menu#readme",
+  "bugs": "https://github.com/BohdanShh/react-native-peek-menu/issues",
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "prettier": "^3.9.10",
+    "typescript": "^5.9.3"
+  }
+}
