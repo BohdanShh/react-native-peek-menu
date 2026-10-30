@@ -1,7 +1,7 @@
-import type { ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 import type { View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
-import Animated, { useAnimatedRef } from 'react-native-reanimated';
+import Animated, { useAnimatedRef, useAnimatedStyle } from 'react-native-reanimated';
 
 import { usePeekMenu } from './PeekMenuProvider';
 import { useHold } from '../hooks/useHold';
@@ -13,14 +13,25 @@ export type PeekMenuProps = {
 };
 
 export function PeekMenu({ items, children }: PeekMenuProps) {
-  const { open } = usePeekMenu();
+  const { open, activeId } = usePeekMenu();
+  const id = useId();
   const ref = useAnimatedRef<View>();
 
-  const { gesture, animatedStyle, width } = useHold(() => {
+  const { gesture, animatedStyle, width } = useHold((scale) => {
     ref.current?.measureInWindow((x, y, measuredWidth, height) => {
-      open({ items, rect: { x, y, width: measuredWidth, height } });
+      open({
+        id,
+        items,
+        rect: { x, y, width: measuredWidth, height },
+        content: children,
+        scale,
+      });
     });
   });
+
+  const originalStyle = useAnimatedStyle(() => ({
+    opacity: activeId.get() === id ? 0 : 1,
+  }));
 
   return (
     <GestureDetector gesture={gesture}>
@@ -28,6 +39,7 @@ export function PeekMenu({ items, children }: PeekMenuProps) {
       <Animated.View
         ref={ref}
         collapsable={false}
+        style={originalStyle}
         onLayout={(event) => width.set(event.nativeEvent.layout.width)}
       >
         <Animated.View style={animatedStyle}>{children}</Animated.View>

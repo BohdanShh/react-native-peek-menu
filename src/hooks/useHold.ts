@@ -11,11 +11,7 @@ import {
   RELEASE_TIMING,
 } from '../constants/gesture';
 
-/**
- * After a short delay the view shrinks for as long as the press lasts, so
- * letting go early just puts it back.
- */
-export function useHold(onActivate: () => void) {
+export function useHold(onActivate: (scale: number) => void) {
   const scale = useSharedValue(1);
   const width = useSharedValue(0);
 
@@ -35,8 +31,8 @@ export function useHold(onActivate: () => void) {
     onActivate: () => {
       'worklet';
 
+      scheduleOnRN(onActivate, scale.get());
       scale.set(withTiming(1, RELEASE_TIMING));
-      scheduleOnRN(onActivate);
     },
     onFinalize: () => {
       'worklet';
