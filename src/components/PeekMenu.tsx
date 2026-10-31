@@ -6,11 +6,14 @@ import Animated, { useAnimatedRef, useAnimatedStyle } from 'react-native-reanima
 import { usePeekMenu } from './PeekMenuProvider';
 import { HOLD_DURATION } from '../constants';
 import { useHold } from '../hooks/useHold';
-import type { PeekMenuItem, PeekMenuRenderProps } from '../types';
+import type { PeekMenuItem, PeekMenuPlacement, PeekMenuRenderProps } from '../types';
 
 type PeekMenuContent =
   | {
-      /** The rows of the menu, read when it opens. An empty list stops the menu from opening. */
+      /**
+       * The rows of the menu, read when it opens. An empty list stops the menu from opening, unless
+       * there's a `renderMenu`.
+       */
       items: PeekMenuItem[];
       /**
        * Renders the menu instead of the default list. It sizes itself, and the library only
@@ -44,6 +47,13 @@ export type PeekMenuProps = PeekMenuContent & {
    * preview={<Bubble text={text} isExpanded={isExpanded} theme={theme} />}
    */
   preview?: ReactNode;
+  /**
+   * The side of the content the menu opens on. It stays there even when space runs out: the content
+   * moves to make room, and if both still don't fit, dragging brings back the rest.
+   *
+   * @default 'bottom'
+   */
+  placement?: PeekMenuPlacement;
   /**
    * How long the content has to be held to open the menu, in milliseconds.
    *
@@ -79,6 +89,7 @@ export function PeekMenu({
   items = [],
   children,
   preview,
+  placement = 'bottom',
   holdDuration = HOLD_DURATION,
   disabled = false,
   style,
@@ -102,6 +113,7 @@ export function PeekMenu({
           rect: { x, y, width: measuredWidth, height },
           content: preview ?? children,
           renderMenu,
+          placement,
           onOpen,
           onClose,
         });

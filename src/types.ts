@@ -19,6 +19,9 @@ export type PeekMenuItem = {
   iconPosition?: 'left' | 'right';
 };
 
+/** The side of the content the menu opens on. */
+export type PeekMenuPlacement = 'top' | 'bottom';
+
 /** What `renderBackdrop` receives. */
 export type PeekMenuBackdropProps = {
   /** Goes from 0 when closed to 1 when open. The open spring can pass 1 slightly. */
@@ -31,8 +34,8 @@ export type PeekMenuRenderProps = {
   items: PeekMenuItem[];
   /** Closes the menu and calls the item's `onPress`. Rows should call this, not `onPress`. */
   onItemPress: (item: PeekMenuItem) => void;
-  /** Closes the menu. Returns `false` if it's already closing, so an action can skip a repeat. */
-  close: () => boolean;
+  /** Closes the menu. */
+  close: () => void;
   /** Goes from 0 when closed to 1 when open. The open spring can pass 1 slightly. */
   progress: SharedValue<number>;
 };

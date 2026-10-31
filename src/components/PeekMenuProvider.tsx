@@ -18,6 +18,7 @@ import type {
   PeekMenuBackdropProps,
   PeekMenuInsets,
   PeekMenuItem,
+  PeekMenuPlacement,
   PeekMenuRenderProps,
   PeekMenuRect,
 } from '../types';
@@ -28,6 +29,7 @@ type PeekMenuRequest = {
   rect: PeekMenuRect;
   content: ReactNode;
   renderMenu?: (props: PeekMenuRenderProps) => ReactNode;
+  placement: PeekMenuPlacement;
   onOpen?: () => void;
   onClose?: () => void;
 };
