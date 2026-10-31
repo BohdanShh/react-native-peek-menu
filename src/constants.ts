@@ -1,5 +1,7 @@
 import type { WithSpringConfig, WithTimingConfig } from 'react-native-reanimated';
 
+export const BACKDROP_COLOR = 'rgba(10, 14, 20, 0.5)';
+
 export const MENU_WIDTH = 250;
 export const MENU_GAP = 7;
 export const SCREEN_PADDING_TOP = 8;

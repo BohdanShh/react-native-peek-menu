@@ -13,7 +13,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSharedValue, type SharedValue } from 'react-native-reanimated';
 
 import { PeekMenuOverlay } from './PeekMenuOverlay';
-import type { PeekMenuInsets, PeekMenuItem, PeekMenuRect } from '../types';
+import { BACKDROP_COLOR } from '../constants';
+import type { PeekMenuBackdropProps, PeekMenuInsets, PeekMenuItem, PeekMenuRect } from '../types';
 
 type PeekMenuRequest = {
   id: string;
@@ -42,6 +43,22 @@ export type PeekMenuProviderProps = {
    * @default { top: 0, bottom: 0, left: 0, right: 0 }
    */
   safeAreaInsets?: PeekMenuInsets;
+  /**
+   * Color of the layer that dims the screen behind the menu. Use a translucent color to keep the
+   * screen visible.
+   *
+   * @default 'rgba(10, 14, 20, 0.5)'
+   */
+  backdropColor?: string;
+  /**
+   * Replaces the colored layer behind the menu, for things like a blur. The element has to fill the
+   * screen itself and animate itself with `progress`, since a fading parent can break a native
+   * blur. Pressing it closes the menu.
+   *
+   * @example
+   * renderBackdrop={({ progress }) => <AnimatedBlur progress={progress} />}
+   */
+  renderBackdrop?: (props: PeekMenuBackdropProps) => ReactNode;
 };
 
 const PeekMenuControlsContext = createContext<PeekMenuControls | null>(null);
@@ -53,6 +70,8 @@ const PeekMenuControlsContext = createContext<PeekMenuControls | null>(null);
 export function PeekMenuProvider({
   children,
   safeAreaInsets = { top: 0, bottom: 0, left: 0, right: 0 },
+  backdropColor = BACKDROP_COLOR,
+  renderBackdrop,
 }: PeekMenuProviderProps) {
   const [activeMenu, setActiveMenu] = useState<ActivePeekMenu | null>(null);
   const activeId = useSharedValue<string | null>(null);
@@ -81,6 +100,8 @@ export function PeekMenuProvider({
               menu={activeMenu}
               activeId={activeId}
               safeAreaInsets={safeAreaInsets}
+              backdropColor={backdropColor}
+              renderBackdrop={renderBackdrop}
               onClosed={close}
             />
           )}

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import {
   BackHandler,
   Dimensions,
@@ -14,17 +14,26 @@ import { PeekMenuList } from './PeekMenuList';
 import type { ActivePeekMenu } from './PeekMenuProvider';
 import { MENU_GAP, MENU_WIDTH } from '../constants';
 import { useMenuAnimation } from '../hooks/useMenuAnimation';
-import type { PeekMenuInsets, PeekMenuItem } from '../types';
+import type { PeekMenuBackdropProps, PeekMenuInsets, PeekMenuItem } from '../types';
 import { getMenuPlacement, getMenuPosition } from '../utils/menuLayout';
 
 type Props = {
   menu: ActivePeekMenu;
   activeId: SharedValue<string | null>;
   safeAreaInsets: PeekMenuInsets;
+  backdropColor: string;
+  renderBackdrop?: (props: PeekMenuBackdropProps) => ReactNode;
   onClosed: () => void;
 };
 
-export function PeekMenuOverlay({ menu, activeId, safeAreaInsets, onClosed }: Props) {
+export function PeekMenuOverlay({
+  menu,
+  activeId,
+  safeAreaInsets,
+  backdropColor,
+  renderBackdrop,
+  onClosed,
+}: Props) {
   const { rect, root } = menu;
 
   const handleClosed = () => {
@@ -74,12 +83,23 @@ export function PeekMenuOverlay({ menu, activeId, safeAreaInsets, onClosed }: Pr
   return (
     <GestureDetector gesture={animation.scrollGesture}>
       <Animated.View style={[StyleSheet.absoluteFill, animation.overlayStyle]}>
-        <Animated.View style={[styles.backdrop, animation.backdropStyle]}>
+        <Animated.View
+          style={
+            renderBackdrop
+              ? StyleSheet.absoluteFill
+              : [
+                  StyleSheet.absoluteFill,
+                  { backgroundColor: backdropColor },
+                  animation.backdropStyle,
+                ]
+          }
+        >
+          {renderBackdrop?.({ progress: animation.progress })}
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Close menu"
             onPress={animation.close}
-            style={styles.fill}
+            style={StyleSheet.absoluteFill}
           />
         </Animated.View>
         <Animated.View
@@ -110,13 +130,6 @@ export function PeekMenuOverlay({ menu, activeId, safeAreaInsets, onClosed }: Pr
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(10, 14, 20, 0.5)',
-  },
-  fill: {
-    flex: 1,
-  },
   copy: {
     position: 'absolute',
     pointerEvents: 'none',

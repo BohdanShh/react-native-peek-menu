@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import type { SharedValue } from 'react-native-reanimated';
 
 /** A row in the menu. */
 export type PeekMenuItem = {
@@ -16,6 +17,12 @@ export type PeekMenuItem = {
    * @default 'right'
    */
   iconPosition?: 'left' | 'right';
+};
+
+/** What `renderBackdrop` receives. */
+export type PeekMenuBackdropProps = {
+  /** Goes from 0 when closed to 1 when open. The open spring can pass 1 slightly. */
+  progress: SharedValue<number>;
 };
 
 export type PeekMenuRect = {
