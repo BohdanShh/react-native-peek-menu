@@ -20,9 +20,9 @@ type Props = {
 export function PeekMenuList({ items, style, onItemPress, onLayout }: Props) {
   return (
     <Animated.View onLayout={onLayout} style={[styles.list, style]}>
-      {items.map((item) => (
+      {items.map((item, index) => (
         <Pressable
-          key={item.title}
+          key={index}
           accessibilityRole="menuitem"
           onPress={() => onItemPress(item)}
           style={({ pressed }) => [styles.item, pressed && styles.pressed]}

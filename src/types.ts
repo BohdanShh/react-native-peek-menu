@@ -10,3 +10,8 @@ export type PeekMenuRect = {
   width: number;
   height: number;
 };
+
+export type PeekMenuInsets = {
+  top: number;
+  bottom: number;
+};

@@ -17,14 +17,13 @@ export function PeekMenu({ items, children }: PeekMenuProps) {
   const id = useId();
   const ref = useAnimatedRef<View>();
 
-  const { gesture, animatedStyle, width } = useHold((scale) => {
+  const { gesture, animatedStyle } = useHold(() => {
     ref.current?.measureInWindow((x, y, measuredWidth, height) => {
       open({
         id,
         items,
         rect: { x, y, width: measuredWidth, height },
         content: children,
-        scale,
       });
     });
   });
@@ -36,12 +35,7 @@ export function PeekMenu({ items, children }: PeekMenuProps) {
   return (
     <GestureDetector gesture={gesture}>
       {/* The scale stays on an inner view so it doesn't skew the measured rect. */}
-      <Animated.View
-        ref={ref}
-        collapsable={false}
-        style={originalStyle}
-        onLayout={(event) => width.set(event.nativeEvent.layout.width)}
-      >
+      <Animated.View ref={ref} collapsable={false} style={originalStyle}>
         <Animated.View style={animatedStyle}>{children}</Animated.View>
       </Animated.View>
     </GestureDetector>
