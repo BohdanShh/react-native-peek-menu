@@ -7,13 +7,14 @@ import {
 } from '../constants';
 import type { PeekMenuInsets, PeekMenuRect } from '../types';
 
-export function getMenuPosition(rect: PeekMenuRect, rootWidth: number) {
+export function getMenuPosition(rect: PeekMenuRect, rootWidth: number, insets: PeekMenuInsets) {
   const isOnRightSide = rect.x + rect.width / 2 > rootWidth / 2;
   const left = isOnRightSide ? rect.x + rect.width - MENU_WIDTH : rect.x;
-  const maxLeft = rootWidth - SCREEN_PADDING_HORIZONTAL - MENU_WIDTH;
+  const minLeft = insets.left + SCREEN_PADDING_HORIZONTAL;
+  const maxLeft = rootWidth - insets.right - SCREEN_PADDING_HORIZONTAL - MENU_WIDTH;
 
   return {
-    left: Math.max(SCREEN_PADDING_HORIZONTAL, Math.min(left, maxLeft)),
+    left: Math.max(minLeft, Math.min(left, maxLeft)),
     transformOrigin: isOnRightSide ? 'top right' : 'top left',
   };
 }

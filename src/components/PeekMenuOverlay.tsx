@@ -90,7 +90,7 @@ export function PeekMenuOverlay({ menu, activeId, safeAreaInsets, onClosed }: Pr
           onLayout={handleMenuLayout}
           style={[
             {
-              ...getMenuPosition(rect, root.width),
+              ...getMenuPosition(rect, root.width, safeAreaInsets),
               top: rect.y + rect.height + MENU_GAP,
               width: MENU_WIDTH,
             },

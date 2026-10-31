@@ -14,4 +14,6 @@ export type PeekMenuRect = {
 export type PeekMenuInsets = {
   top: number;
   bottom: number;
+  left: number;
+  right: number;
 };
