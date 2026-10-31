@@ -2,17 +2,26 @@ import { useLongPressGesture } from 'react-native-gesture-handler';
 import { useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
-import { HOLD_DELAY, HOLD_DURATION, HOLD_SCALE, RELEASE_DURATION } from '../constants';
+import { HOLD_DELAY_RATIO, HOLD_SCALE, RELEASE_DURATION } from '../constants';
 
-export function useHold(onActivate: () => void) {
+type HoldConfig = {
+  duration: number;
+  disabled: boolean;
+  onActivate: () => void;
+};
+
+export function useHold({ duration, disabled, onActivate }: HoldConfig) {
   const scale = useSharedValue(1);
 
   const gesture = useLongPressGesture({
-    minDuration: HOLD_DELAY + HOLD_DURATION,
+    enabled: !disabled,
+    minDuration: duration,
     onBegin: () => {
       'worklet';
 
-      scale.set(withDelay(HOLD_DELAY, withTiming(HOLD_SCALE, { duration: HOLD_DURATION })));
+      const delay = duration * HOLD_DELAY_RATIO;
+
+      scale.set(withDelay(delay, withTiming(HOLD_SCALE, { duration: duration - delay })));
     },
     onActivate: () => {
       'worklet';

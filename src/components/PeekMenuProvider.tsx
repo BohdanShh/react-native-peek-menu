@@ -20,6 +20,8 @@ type PeekMenuRequest = {
   items: PeekMenuItem[];
   rect: PeekMenuRect;
   content: ReactNode;
+  onOpen?: () => void;
+  onClose?: () => void;
 };
 
 export type ActivePeekMenu = PeekMenuRequest & {
@@ -32,12 +34,22 @@ type PeekMenuControls = {
 };
 
 export type PeekMenuProviderProps = {
+  /** The part of the app that can open menus. The open menu covers this whole area. */
   children: ReactNode;
+  /**
+   * Keeps the menu clear of the notch and other screen edges.
+   *
+   * @default { top: 0, bottom: 0, left: 0, right: 0 }
+   */
   safeAreaInsets?: PeekMenuInsets;
 };
 
 const PeekMenuControlsContext = createContext<PeekMenuControls | null>(null);
 
+/**
+ * Hosts the open menu, which every `PeekMenu` inside it renders into. Place it high enough for the
+ * menu to cover what it should, and below any context the menus' content reads.
+ */
 export function PeekMenuProvider({
   children,
   safeAreaInsets = { top: 0, bottom: 0, left: 0, right: 0 },
