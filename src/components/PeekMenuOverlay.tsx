@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, type LayoutChangeEvent } from 'react-native';
+import { GestureDetector } from 'react-native-gesture-handler';
 import Animated, { type SharedValue } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
@@ -7,7 +8,7 @@ import type { ActivePeekMenu } from './PeekMenuProvider';
 import { MENU_GAP, MENU_WIDTH } from '../constants';
 import { useMenuAnimation } from '../hooks/useMenuAnimation';
 import type { PeekMenuInsets, PeekMenuItem } from '../types';
-import { getMenuPosition, getMenuShift } from '../utils/menuLayout';
+import { getMenuPlacement, getMenuPosition } from '../utils/menuLayout';
 
 type Props = {
   menu: ActivePeekMenu;
@@ -32,7 +33,7 @@ export function PeekMenuOverlay({ menu, activeId, safeAreaInsets, onClosed }: Pr
     const { height } = event.nativeEvent.layout;
 
     activeId.set(menu.id);
-    animation.open(getMenuShift(rect, height, root.height, safeAreaInsets));
+    animation.open(getMenuPlacement(rect, height, root.height, safeAreaInsets));
   };
 
   const handleItemPress = (item: PeekMenuItem) => {
@@ -42,38 +43,40 @@ export function PeekMenuOverlay({ menu, activeId, safeAreaInsets, onClosed }: Pr
   };
 
   return (
-    <Animated.View style={[StyleSheet.absoluteFill, animation.overlayStyle]}>
-      <Animated.View style={[styles.backdrop, animation.backdropStyle]}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Close menu"
-          onPress={animation.close}
-          style={styles.fill}
+    <GestureDetector gesture={animation.scrollGesture}>
+      <Animated.View style={[StyleSheet.absoluteFill, animation.overlayStyle]}>
+        <Animated.View style={[styles.backdrop, animation.backdropStyle]}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Close menu"
+            onPress={animation.close}
+            style={styles.fill}
+          />
+        </Animated.View>
+        <Animated.View
+          style={[
+            styles.copy,
+            { left: rect.x, top: rect.y, width: rect.width, height: rect.height },
+            animation.copyStyle,
+          ]}
+        >
+          {menu.content}
+        </Animated.View>
+        <PeekMenuList
+          items={menu.items}
+          onItemPress={handleItemPress}
+          onLayout={handleMenuLayout}
+          style={[
+            {
+              ...getMenuPosition(rect, root.width),
+              top: rect.y + rect.height + MENU_GAP,
+              width: MENU_WIDTH,
+            },
+            animation.menuStyle,
+          ]}
         />
       </Animated.View>
-      <Animated.View
-        style={[
-          styles.copy,
-          { left: rect.x, top: rect.y, width: rect.width, height: rect.height },
-          animation.copyStyle,
-        ]}
-      >
-        {menu.content}
-      </Animated.View>
-      <PeekMenuList
-        items={menu.items}
-        onItemPress={handleItemPress}
-        onLayout={handleMenuLayout}
-        style={[
-          {
-            ...getMenuPosition(rect, root.width),
-            top: rect.y + rect.height + MENU_GAP,
-            width: MENU_WIDTH,
-          },
-          animation.menuStyle,
-        ]}
-      />
-    </Animated.View>
+    </GestureDetector>
   );
 }
 

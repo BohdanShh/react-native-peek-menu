@@ -1,5 +1,14 @@
 import { useRef } from 'react';
-import { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import { usePanGesture } from 'react-native-gesture-handler';
+import {
+  cancelAnimation,
+  clamp,
+  useAnimatedStyle,
+  useSharedValue,
+  withDecay,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import { scheduleOnUI } from 'react-native-worklets';
 
 import {
@@ -15,14 +24,36 @@ export function useMenuAnimation(onClosed: () => void) {
   // Starts where the hold left it, so the copy takes over without a jump.
   const scale = useSharedValue(HOLD_SCALE);
   const shift = useSharedValue(0);
+  const scroll = useSharedValue(0);
+  const scrollRange = useSharedValue(0);
   const isClosing = useRef(false);
 
-  const open = (nextShift: number) => {
+  const scrollGesture = usePanGesture({
+    activeOffsetY: [-10, 10],
+    onBegin: () => {
+      'worklet';
+
+      cancelAnimation(scroll);
+    },
+    onUpdate: (event) => {
+      'worklet';
+
+      scroll.set(clamp(scroll.get() + event.changeY, 0, scrollRange.get()));
+    },
+    onDeactivate: (event) => {
+      'worklet';
+
+      scroll.set(withDecay({ velocity: event.velocityY, clamp: [0, scrollRange.get()] }));
+    },
+  });
+
+  const open = (placement: { shift: number; scrollRange: number }) => {
     if (isClosing.current) {
       return;
     }
 
-    shift.set(nextShift);
+    shift.set(placement.shift);
+    scrollRange.set(placement.scrollRange);
 
     /*
      * Waits for the second UI frame: mounting keeps the main thread busy, so the first one carries
@@ -67,7 +98,10 @@ export function useMenuAnimation(onClosed: () => void) {
   }));
 
   const copyStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: shift.get() * progress.get() }, { scale: scale.get() }],
+    transform: [
+      { translateY: (shift.get() + scroll.get()) * progress.get() },
+      { scale: scale.get() },
+    ],
   }));
 
   const menuStyle = useAnimatedStyle(() => {
@@ -76,11 +110,11 @@ export function useMenuAnimation(onClosed: () => void) {
     return {
       opacity: value,
       transform: [
-        { translateY: shift.get() * value - (1 - value) * MENU_START_OFFSET },
+        { translateY: (shift.get() + scroll.get()) * value - (1 - value) * MENU_START_OFFSET },
         { scale: MENU_START_SCALE + (1 - MENU_START_SCALE) * value },
       ],
     };
   });
 
-  return { open, close, overlayStyle, backdropStyle, copyStyle, menuStyle };
+  return { open, close, scrollGesture, overlayStyle, backdropStyle, copyStyle, menuStyle };
 }

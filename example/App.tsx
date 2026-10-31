@@ -19,6 +19,9 @@ const ITEMS = [
   { title: 'Delete', destructive: true, onPress: () => console.log('Delete') },
 ];
 
+const LONG_MESSAGE =
+  'So here is everything that happened on the way to the station this morning. '.repeat(40);
+
 const MESSAGES: Message[] = [
   { id: '1', text: 'Hey! Are you free tonight?', isOwn: false },
   { id: '2', text: 'Should be, what are you thinking?', isOwn: true },
@@ -56,6 +59,8 @@ const MESSAGES: Message[] = [
   { id: '30', text: "No worries, I'll grab a spot in the queue", isOwn: false },
   { id: '31', text: "You're the best", isOwn: true },
   { id: '32', text: 'I know 😄', isOwn: false },
+  { id: '33', text: LONG_MESSAGE, isOwn: true },
+  { id: '34', text: 'Sorry, that was a long one', isOwn: true },
 ];
 
 function MessageRow({ message }: { message: Message }) {
