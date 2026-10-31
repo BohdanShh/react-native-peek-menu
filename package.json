@@ -27,8 +27,6 @@
     "context-menu",
     "long-press",
     "preview",
-    "haptic",
-    "blur",
     "shared-element-transition"
   ],
   "author": "BohdanShh <bohdanshh.dev@gmail.com>",
