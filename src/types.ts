@@ -25,6 +25,18 @@ export type PeekMenuBackdropProps = {
   progress: SharedValue<number>;
 };
 
+/** What `renderMenu` receives. */
+export type PeekMenuRenderProps = {
+  /** The `items` of the open menu, empty if it has none. */
+  items: PeekMenuItem[];
+  /** Closes the menu and calls the item's `onPress`. Rows should call this, not `onPress`. */
+  onItemPress: (item: PeekMenuItem) => void;
+  /** Closes the menu. Returns `false` if it's already closing, so an action can skip a repeat. */
+  close: () => boolean;
+  /** Goes from 0 when closed to 1 when open. The open spring can pass 1 slightly. */
+  progress: SharedValue<number>;
+};
+
 export type PeekMenuRect = {
   x: number;
   y: number;

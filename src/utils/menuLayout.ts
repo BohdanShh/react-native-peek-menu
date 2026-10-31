@@ -1,17 +1,25 @@
 import {
   MENU_GAP,
-  MENU_WIDTH,
   SCREEN_PADDING_BOTTOM,
   SCREEN_PADDING_HORIZONTAL,
   SCREEN_PADDING_TOP,
 } from '../constants';
 import type { PeekMenuInsets, PeekMenuRect } from '../types';
 
-export function getMenuPosition(rect: PeekMenuRect, rootWidth: number, insets: PeekMenuInsets) {
+export function getMenuMaxWidth(rootWidth: number, insets: PeekMenuInsets) {
+  return rootWidth - insets.left - insets.right - SCREEN_PADDING_HORIZONTAL * 2;
+}
+
+export function getMenuPosition(
+  rect: PeekMenuRect,
+  menuWidth: number,
+  rootWidth: number,
+  insets: PeekMenuInsets,
+) {
   const isOnRightSide = rect.x + rect.width / 2 > rootWidth / 2;
-  const left = isOnRightSide ? rect.x + rect.width - MENU_WIDTH : rect.x;
+  const left = isOnRightSide ? rect.x + rect.width - menuWidth : rect.x;
   const minLeft = insets.left + SCREEN_PADDING_HORIZONTAL;
-  const maxLeft = rootWidth - insets.right - SCREEN_PADDING_HORIZONTAL - MENU_WIDTH;
+  const maxLeft = rootWidth - insets.right - SCREEN_PADDING_HORIZONTAL - menuWidth;
 
   return {
     left: Math.max(minLeft, Math.min(left, maxLeft)),

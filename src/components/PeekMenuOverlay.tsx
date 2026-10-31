@@ -12,10 +12,15 @@ import { scheduleOnRN } from 'react-native-worklets';
 
 import { PeekMenuList } from './PeekMenuList';
 import type { ActivePeekMenu } from './PeekMenuProvider';
-import { MENU_GAP, MENU_WIDTH } from '../constants';
+import { MENU_GAP } from '../constants';
 import { useMenuAnimation } from '../hooks/useMenuAnimation';
-import type { PeekMenuBackdropProps, PeekMenuInsets, PeekMenuItem } from '../types';
-import { getMenuPlacement, getMenuPosition } from '../utils/menuLayout';
+import type {
+  PeekMenuBackdropProps,
+  PeekMenuInsets,
+  PeekMenuItem,
+  PeekMenuRenderProps,
+} from '../types';
+import { getMenuMaxWidth, getMenuPlacement, getMenuPosition } from '../utils/menuLayout';
 
 type Props = {
   menu: ActivePeekMenu;
@@ -23,6 +28,7 @@ type Props = {
   safeAreaInsets: PeekMenuInsets;
   backdropColor: string;
   renderBackdrop?: (props: PeekMenuBackdropProps) => ReactNode;
+  renderMenu?: (props: PeekMenuRenderProps) => ReactNode;
   onClosed: () => void;
 };
 
@@ -32,6 +38,7 @@ export function PeekMenuOverlay({
   safeAreaInsets,
   backdropColor,
   renderBackdrop,
+  renderMenu = (props) => <PeekMenuList {...props} />,
   onClosed,
 }: Props) {
   const { rect, root } = menu;
@@ -49,12 +56,15 @@ export function PeekMenuOverlay({
     scheduleOnRN(handleClosed);
   });
 
-  // Waits for the menu's real height. The copy is there by then, so the original leaves no gap.
+  // Waits for the menu's real size. The copy is there by then, so the original leaves no gap.
   const handleMenuLayout = (event: LayoutChangeEvent) => {
-    const { height } = event.nativeEvent.layout;
+    const { width, height } = event.nativeEvent.layout;
 
     activeId.set(menu.id);
-    animation.open(getMenuPlacement(rect, height, root.height, safeAreaInsets));
+    animation.open({
+      ...getMenuPlacement(rect, height, root.height, safeAreaInsets),
+      ...getMenuPosition(rect, width, root.width, safeAreaInsets),
+    });
   };
 
   const handleItemPress = (item: PeekMenuItem) => {
@@ -111,19 +121,24 @@ export function PeekMenuOverlay({
         >
           {menu.content}
         </Animated.View>
-        <PeekMenuList
-          items={menu.items}
-          onItemPress={handleItemPress}
+        <Animated.View
           onLayout={handleMenuLayout}
           style={[
+            styles.menu,
             {
-              ...getMenuPosition(rect, root.width, safeAreaInsets),
               top: rect.y + rect.height + MENU_GAP,
-              width: MENU_WIDTH,
+              maxWidth: getMenuMaxWidth(root.width, safeAreaInsets),
             },
             animation.menuStyle,
           ]}
-        />
+        >
+          {(menu.renderMenu ?? renderMenu)({
+            items: menu.items,
+            onItemPress: handleItemPress,
+            close: animation.close,
+            progress: animation.progress,
+          })}
+        </Animated.View>
       </Animated.View>
     </GestureDetector>
   );
@@ -133,5 +148,9 @@ const styles = StyleSheet.create({
   copy: {
     position: 'absolute',
     pointerEvents: 'none',
+  },
+  menu: {
+    position: 'absolute',
+    left: 0,
   },
 });

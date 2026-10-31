@@ -6,11 +6,29 @@ import Animated, { useAnimatedRef, useAnimatedStyle } from 'react-native-reanima
 import { usePeekMenu } from './PeekMenuProvider';
 import { HOLD_DURATION } from '../constants';
 import { useHold } from '../hooks/useHold';
-import type { PeekMenuItem } from '../types';
+import type { PeekMenuItem, PeekMenuRenderProps } from '../types';
 
-export type PeekMenuProps = {
-  /** The rows of the menu, read when it opens. */
-  items: PeekMenuItem[];
+type PeekMenuContent =
+  | {
+      /** The rows of the menu, read when it opens. An empty list stops the menu from opening. */
+      items: PeekMenuItem[];
+      /**
+       * Renders the menu instead of the default list. It sizes itself, and the library only
+       * positions it, animates it and closes it. A fixed `width` should come with
+       * `maxWidth: '100%'` to stay on screen. It runs inside the provider, so a component it
+       * renders can't read context below `PeekMenuProvider`.
+       *
+       * @example
+       * renderMenu={({ close }) => <Card onDone={close} />}
+       */
+      renderMenu?: (props: PeekMenuRenderProps) => ReactNode;
+    }
+  | {
+      items?: PeekMenuItem[];
+      renderMenu: (props: PeekMenuRenderProps) => ReactNode;
+    };
+
+export type PeekMenuProps = PeekMenuContent & {
   /**
    * The content that opens the menu when held. It's rendered again above the screen while the menu
    * is open, so it loses its local state and any context below `PeekMenuProvider`.
@@ -48,21 +66,23 @@ export type PeekMenuProps = {
  * </PeekMenu>
  */
 export function PeekMenu({
-  items,
+  items = [],
   children,
   holdDuration = HOLD_DURATION,
   disabled = false,
   style,
+  renderMenu,
   onOpen,
   onClose,
 }: PeekMenuProps) {
-  const { open, activeId } = usePeekMenu();
+  const { open, activeId, hasRenderMenu } = usePeekMenu();
   const id = useId();
   const ref = useAnimatedRef<View>();
+  const isEmpty = items.length === 0 && !renderMenu && !hasRenderMenu;
 
   const { gesture, animatedStyle } = useHold({
     duration: holdDuration,
-    disabled,
+    disabled: disabled || isEmpty,
     onActivate: () => {
       ref.current?.measureInWindow((x, y, measuredWidth, height) => {
         open({
@@ -70,6 +90,7 @@ export function PeekMenu({
           items,
           rect: { x, y, width: measuredWidth, height },
           content: children,
+          renderMenu,
           onOpen,
           onClose,
         });

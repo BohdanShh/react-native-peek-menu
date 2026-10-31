@@ -26,6 +26,8 @@ export function useMenuAnimation(onClosed: () => void) {
   const shift = useSharedValue(0);
   const scroll = useSharedValue(0);
   const scrollRange = useSharedValue(0);
+  const menuLeft = useSharedValue(0);
+  const menuOrigin = useSharedValue('top left');
   const isClosing = useRef(false);
 
   const scrollGesture = usePanGesture({
@@ -47,13 +49,20 @@ export function useMenuAnimation(onClosed: () => void) {
     },
   });
 
-  const open = (placement: { shift: number; scrollRange: number }) => {
+  const open = (placement: {
+    shift: number;
+    scrollRange: number;
+    left: number;
+    transformOrigin: string;
+  }) => {
     if (isClosing.current) {
       return;
     }
 
     shift.set(placement.shift);
     scrollRange.set(placement.scrollRange);
+    menuLeft.set(placement.left);
+    menuOrigin.set(placement.transformOrigin);
 
     /*
      * Waits for the second UI frame: mounting keeps the main thread busy, so the first one carries
@@ -109,7 +118,9 @@ export function useMenuAnimation(onClosed: () => void) {
 
     return {
       opacity: value,
+      transformOrigin: menuOrigin.get(),
       transform: [
+        { translateX: menuLeft.get() },
         { translateY: (shift.get() + scroll.get()) * value - (1 - value) * MENU_START_OFFSET },
         { scale: MENU_START_SCALE + (1 - MENU_START_SCALE) * value },
       ],

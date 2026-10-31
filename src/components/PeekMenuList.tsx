@@ -1,25 +1,13 @@
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  type LayoutChangeEvent,
-  type StyleProp,
-  type ViewStyle,
-} from 'react-native';
-import Animated, { type AnimatedStyle } from 'react-native-reanimated';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import type { PeekMenuItem } from '../types';
+import { MENU_WIDTH } from '../constants';
+import type { PeekMenuRenderProps } from '../types';
 
-type Props = {
-  items: PeekMenuItem[];
-  style: StyleProp<AnimatedStyle<StyleProp<ViewStyle>>>;
-  onItemPress: (item: PeekMenuItem) => void;
-  onLayout: (event: LayoutChangeEvent) => void;
-};
+type Props = Pick<PeekMenuRenderProps, 'items' | 'onItemPress'>;
 
-export function PeekMenuList({ items, style, onItemPress, onLayout }: Props) {
+export function PeekMenuList({ items, onItemPress }: Props) {
   return (
-    <Animated.View onLayout={onLayout} style={[styles.list, style]}>
+    <View style={styles.list}>
       {items.map((item, index) => (
         <Pressable
           key={index}
@@ -36,17 +24,17 @@ export function PeekMenuList({ items, style, onItemPress, onLayout }: Props) {
           {item.icon}
         </Pressable>
       ))}
-    </Animated.View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   list: {
-    position: 'absolute',
+    width: MENU_WIDTH,
+    maxWidth: '100%',
     overflow: 'hidden',
-    borderRadius: 14,
+    borderRadius: 16,
     backgroundColor: '#FFF',
-    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)',
   },
   item: {
     flexDirection: 'row',
@@ -60,7 +48,7 @@ const styles = StyleSheet.create({
   },
   separator: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(60, 60, 67, 0.2)',
+    borderTopColor: 'rgba(60, 60, 67, 0.3)',
   },
   pressed: {
     backgroundColor: 'rgba(0, 0, 0, 0.06)',
@@ -71,6 +59,6 @@ const styles = StyleSheet.create({
     color: '#1C1C1E',
   },
   destructive: {
-    color: '#FF3B30',
+    color: '#D70015',
   },
 });
