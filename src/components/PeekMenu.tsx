@@ -31,9 +31,19 @@ type PeekMenuContent =
 export type PeekMenuProps = PeekMenuContent & {
   /**
    * The content that opens the menu when held. It's rendered again above the screen while the menu
-   * is open, so it loses its local state and any context below `PeekMenuProvider`.
+   * is open, so it loses its local state and any context below `PeekMenuProvider`, and hooks that
+   * require such a context throw when the menu opens. Use `preview` when that matters.
    */
   children: ReactNode;
+  /**
+   * Shown instead of `children` above the screen while the menu is open, in the same box. It also
+   * renders inside the provider, so hand it what it needs through props, or wrap it in the context
+   * providers it reads.
+   *
+   * @example
+   * preview={<Bubble text={text} isExpanded={isExpanded} theme={theme} />}
+   */
+  preview?: ReactNode;
   /**
    * How long the content has to be held to open the menu, in milliseconds.
    *
@@ -68,6 +78,7 @@ export type PeekMenuProps = PeekMenuContent & {
 export function PeekMenu({
   items = [],
   children,
+  preview,
   holdDuration = HOLD_DURATION,
   disabled = false,
   style,
@@ -89,7 +100,7 @@ export function PeekMenu({
           id,
           items,
           rect: { x, y, width: measuredWidth, height },
-          content: children,
+          content: preview ?? children,
           renderMenu,
           onOpen,
           onClose,
