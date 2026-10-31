@@ -50,7 +50,7 @@ Opening a menu:
 
 `useMenuAnimation` owns all the motion, driven by one `progress` value from 0 to 1. The opening waits two UI frames, because mounting keeps the main thread busy and a spring started on the first frame would skip ahead. The menu's horizontal position and transform origin are shared values applied in the animated style, so measuring doesn't cost a second render.
 
-Closing runs `progress` back to 0, restores the original on the UI thread, and only then unmounts the overlay and calls `onClose`, so the original is visible before the copy goes. `close` does nothing if the menu is already closing. A closing menu also stops taking touches, so a row's `onPress` and an action in `renderMenu` run once, with no check. The Android back button and any screen dimension change close the menu.
+Closing runs `progress` back to 0, restores the original on the UI thread, and only then unmounts the overlay and calls `onClose`, so the original is visible before the copy goes. `close` does nothing if the menu is already closing, and it takes an optional action that runs only when this call starts the closing. `handleItemPress` passes `onPress` through it, and `renderMenu` content does the same, so a repeat press skips the action. A closing menu also stops taking touches, but that reaches the UI a frame or more later, so it can't guarantee this alone. The Android back button and any screen dimension change close the menu.
 
 Things that follow from this design:
 

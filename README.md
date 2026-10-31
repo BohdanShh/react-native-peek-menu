@@ -104,19 +104,10 @@ The menu sizes itself to its content. A `width` wider than the screen needs `max
 
 ### Anything as a menu
 
-With `renderMenu` you don't need `items`. Show any component and call `close` when it's done.
+With `renderMenu` you don't need `items`. Show any component and call `close` when it's done. An action passed to `close` runs once, even on a fast double tap.
 
 ```tsx
-<PeekMenu
-  renderMenu={({ close }) => (
-    <SaveCard
-      onSave={() => {
-        close();
-        save(message);
-      }}
-    />
-  )}
->
+<PeekMenu renderMenu={({ close }) => <SaveCard onSave={() => close(() => save(message))} />}>
   <Message />
 </PeekMenu>
 ```
@@ -180,12 +171,12 @@ A `PeekMenu` needs `items`, `renderMenu`, or both.
 
 What `renderMenu` receives.
 
-| Field         | Type                           | Description                                                             |
-| ------------- | ------------------------------ | ----------------------------------------------------------------------- |
-| `items`       | `PeekMenuItem[]`               | The rows of the open menu, empty if it has none.                        |
-| `onItemPress` | `(item: PeekMenuItem) => void` | Closes the menu and calls the item's `onPress`. Rows should call this.  |
-| `close`       | `() => void`                   | Closes the menu.                                                        |
-| `progress`    | `SharedValue<number>`          | From 0 when closed to 1 when open. The open spring can pass 1 slightly. |
+| Field         | Type                            | Description                                                             |
+| ------------- | ------------------------------- | ----------------------------------------------------------------------- |
+| `items`       | `PeekMenuItem[]`                | The rows of the open menu, empty if it has none.                        |
+| `onItemPress` | `(item: PeekMenuItem) => void`  | Closes the menu and calls the item's `onPress`. Rows should call this.  |
+| `close`       | `(action?: () => void) => void` | Closes the menu and runs `action` once.                                 |
+| `progress`    | `SharedValue<number>`           | From 0 when closed to 1 when open. The open spring can pass 1 slightly. |
 
 ### `PeekMenuBackdropProps`
 
