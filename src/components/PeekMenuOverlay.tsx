@@ -1,5 +1,11 @@
 import { useEffect } from 'react';
-import { BackHandler, Pressable, StyleSheet, type LayoutChangeEvent } from 'react-native';
+import {
+  BackHandler,
+  Dimensions,
+  Pressable,
+  StyleSheet,
+  type LayoutChangeEvent,
+} from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated, { type SharedValue } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
@@ -44,13 +50,18 @@ export function PeekMenuOverlay({ menu, activeId, safeAreaInsets, onClosed }: Pr
   };
 
   useEffect(() => {
-    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+    const backSubscription = BackHandler.addEventListener('hardwareBackPress', () => {
       animation.close();
 
       return true;
     });
 
-    return () => subscription.remove();
+    const dimensionsSubscription = Dimensions.addEventListener('change', () => animation.close());
+
+    return () => {
+      backSubscription.remove();
+      dimensionsSubscription.remove();
+    };
   }, []);
 
   return (
