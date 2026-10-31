@@ -27,12 +27,17 @@ type Props = {
 export function PeekMenuOverlay({ menu, activeId, safeAreaInsets, onClosed }: Props) {
   const { rect, root } = menu;
 
+  const handleClosed = () => {
+    onClosed();
+    menu.onClose?.();
+  };
+
   const animation = useMenuAnimation(() => {
     'worklet';
 
     // The original has to be back before the copy on top of it goes.
     activeId.set(null);
-    scheduleOnRN(onClosed);
+    scheduleOnRN(handleClosed);
   });
 
   // Waits for the menu's real height. The copy is there by then, so the original leaves no gap.
@@ -50,6 +55,8 @@ export function PeekMenuOverlay({ menu, activeId, safeAreaInsets, onClosed }: Pr
   };
 
   useEffect(() => {
+    menu.onOpen?.();
+
     const backSubscription = BackHandler.addEventListener('hardwareBackPress', () => {
       animation.close();
 

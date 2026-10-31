@@ -6,8 +6,8 @@ export const SCREEN_PADDING_TOP = 8;
 export const SCREEN_PADDING_BOTTOM = 10;
 export const SCREEN_PADDING_HORIZONTAL = 12;
 
-export const HOLD_DELAY = 120;
-export const HOLD_DURATION = 180;
+export const HOLD_DURATION = 300;
+export const HOLD_DELAY_RATIO = 0.4;
 export const HOLD_SCALE = 0.97;
 export const RELEASE_DURATION = 120;
 
