@@ -25,9 +25,15 @@ export function PeekMenuList({ items, style, onItemPress, onLayout }: Props) {
           key={index}
           accessibilityRole="menuitem"
           onPress={() => onItemPress(item)}
-          style={({ pressed }) => [styles.item, pressed && styles.pressed]}
+          style={({ pressed }) => [
+            styles.item,
+            item.iconPosition === 'left' && styles.iconOnLeft,
+            index > 0 && styles.separator,
+            pressed && styles.pressed,
+          ]}
         >
           <Text style={[styles.title, item.destructive && styles.destructive]}>{item.title}</Text>
+          {item.icon}
         </Pressable>
       ))}
     </Animated.View>
@@ -40,17 +46,29 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderRadius: 14,
     backgroundColor: '#FFF',
+    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.18)',
   },
   item: {
-    paddingHorizontal: 18,
-    paddingVertical: 11,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+  },
+  iconOnLeft: {
+    flexDirection: 'row-reverse',
+  },
+  separator: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(60, 60, 67, 0.2)',
   },
   pressed: {
-    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    backgroundColor: 'rgba(0, 0, 0, 0.06)',
   },
   title: {
-    fontSize: 17,
-    color: '#000',
+    flex: 1,
+    fontSize: 16,
+    color: '#1C1C1E',
   },
   destructive: {
     color: '#FF3B30',

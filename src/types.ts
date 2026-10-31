@@ -1,7 +1,11 @@
+import type { ReactNode } from 'react';
+
 export type PeekMenuItem = {
   title: string;
   onPress: () => void;
   destructive?: boolean;
+  icon?: ReactNode;
+  iconPosition?: 'left' | 'right';
 };
 
 export type PeekMenuRect = {

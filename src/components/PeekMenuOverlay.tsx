@@ -105,7 +105,7 @@ export function PeekMenuOverlay({ menu, activeId, safeAreaInsets, onClosed }: Pr
 const styles = StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: 'rgba(10, 14, 20, 0.5)',
   },
   fill: {
     flex: 1,
