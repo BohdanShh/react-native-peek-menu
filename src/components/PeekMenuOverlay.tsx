@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, type LayoutChangeEvent } from 'react-native';
+import { useEffect } from 'react';
+import { BackHandler, Pressable, StyleSheet, type LayoutChangeEvent } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated, { type SharedValue } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
@@ -41,6 +42,16 @@ export function PeekMenuOverlay({ menu, activeId, safeAreaInsets, onClosed }: Pr
       item.onPress();
     }
   };
+
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      animation.close();
+
+      return true;
+    });
+
+    return () => subscription.remove();
+  }, []);
 
   return (
     <GestureDetector gesture={animation.scrollGesture}>
