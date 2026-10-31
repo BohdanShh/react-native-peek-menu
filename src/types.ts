@@ -34,8 +34,13 @@ export type PeekMenuRenderProps = {
   items: PeekMenuItem[];
   /** Closes the menu and calls the item's `onPress`. Rows should call this, not `onPress`. */
   onItemPress: (item: PeekMenuItem) => void;
-  /** Closes the menu. */
-  close: () => void;
+  /**
+   * Closes the menu. `action` runs as it starts to close, and only once: a repeat press skips it.
+   *
+   * @example
+   * onPress={() => close(() => save(message))}
+   */
+  close: (action?: () => void) => void;
   /** Goes from 0 when closed to 1 when open. The open spring can pass 1 slightly. */
   progress: SharedValue<number>;
 };

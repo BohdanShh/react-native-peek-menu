@@ -63,10 +63,6 @@ export function useMenuAnimation(onClosed: () => void) {
   });
 
   const open = (nextPlacement: MenuPlacement) => {
-    if (isClosing.current) {
-      return;
-    }
-
     placement.set(nextPlacement);
 
     /*
@@ -85,7 +81,7 @@ export function useMenuAnimation(onClosed: () => void) {
     });
   };
 
-  const close = () => {
+  const close = (action?: () => void) => {
     if (isClosing.current) {
       return;
     }
@@ -99,6 +95,10 @@ export function useMenuAnimation(onClosed: () => void) {
         }
       }),
     );
+
+    if (typeof action === 'function') {
+      action();
+    }
   };
 
   // Touches only count once the menu is on its way, so it can't close before it opens.
@@ -123,7 +123,6 @@ export function useMenuAnimation(onClosed: () => void) {
 
     return {
       opacity: value,
-      // A closing menu is still on screen, and a second tap on its buttons must not land.
       pointerEvents: isMenuLocked.get() ? 'none' : 'auto',
       transformOrigin,
       transform: [
@@ -136,6 +135,7 @@ export function useMenuAnimation(onClosed: () => void) {
 
   return {
     progress,
+    isClosing,
     open,
     close,
     scrollGesture,

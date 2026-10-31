@@ -57,6 +57,11 @@ export function PeekMenuOverlay({
   });
 
   const handleMenuLayout = (event: LayoutChangeEvent) => {
+    // A resize while closing must not hide the original again: nothing would bring it back.
+    if (animation.isClosing.current) {
+      return;
+    }
+
     const { width, height } = event.nativeEvent.layout;
 
     activeId.set(menu.id);
@@ -67,8 +72,7 @@ export function PeekMenuOverlay({
   };
 
   const handleItemPress = (item: PeekMenuItem) => {
-    animation.close();
-    item.onPress();
+    animation.close(item.onPress);
   };
 
   useEffect(() => {
@@ -106,7 +110,7 @@ export function PeekMenuOverlay({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Close menu"
-            onPress={animation.close}
+            onPress={() => animation.close()}
             style={StyleSheet.absoluteFill}
           />
         </Animated.View>
