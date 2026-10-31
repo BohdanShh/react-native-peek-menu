@@ -6,5 +6,6 @@ export type {
   PeekMenuBackdropProps,
   PeekMenuInsets,
   PeekMenuItem,
+  PeekMenuPlacement,
   PeekMenuRenderProps,
 } from './types';

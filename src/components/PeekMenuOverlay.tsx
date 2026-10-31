@@ -56,21 +56,19 @@ export function PeekMenuOverlay({
     scheduleOnRN(handleClosed);
   });
 
-  // Waits for the menu's real size. The copy is there by then, so the original leaves no gap.
   const handleMenuLayout = (event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
 
     activeId.set(menu.id);
     animation.open({
-      ...getMenuPlacement(rect, height, root.height, safeAreaInsets),
-      ...getMenuPosition(rect, width, root.width, safeAreaInsets),
+      ...getMenuPlacement(rect, height, root.height, safeAreaInsets, menu.placement),
+      ...getMenuPosition(rect, width, root.width, safeAreaInsets, menu.placement),
     });
   };
 
   const handleItemPress = (item: PeekMenuItem) => {
-    if (animation.close()) {
-      item.onPress();
-    }
+    animation.close();
+    item.onPress();
   };
 
   useEffect(() => {
@@ -126,7 +124,9 @@ export function PeekMenuOverlay({
           style={[
             styles.menu,
             {
-              top: rect.y + rect.height + MENU_GAP,
+              ...(menu.placement === 'top'
+                ? { bottom: root.height - rect.y + MENU_GAP }
+                : { top: rect.y + rect.height + MENU_GAP }),
               maxWidth: getMenuMaxWidth(root.width, safeAreaInsets),
             },
             animation.menuStyle,

@@ -11,24 +11,33 @@ import {
 } from 'react-native-reanimated';
 import { scheduleOnUI } from 'react-native-worklets';
 
-import {
-  CLOSE_TIMING,
-  HOLD_SCALE,
-  MENU_START_OFFSET,
-  MENU_START_SCALE,
-  OPEN_SPRING,
-} from '../constants';
+import { CLOSE_TIMING, HOLD_SCALE, MENU_START_SCALE, OPEN_SPRING } from '../constants';
+
+type MenuPlacement = {
+  shift: number;
+  minScroll: number;
+  maxScroll: number;
+  startOffset: number;
+  left: number;
+  transformOrigin: string;
+};
+
+const INITIAL_PLACEMENT: MenuPlacement = {
+  shift: 0,
+  minScroll: 0,
+  maxScroll: 0,
+  startOffset: 0,
+  left: 0,
+  transformOrigin: 'top left',
+};
 
 export function useMenuAnimation(onClosed: () => void) {
   const progress = useSharedValue(0);
-  // Starts where the hold left it, so the copy takes over without a jump.
   const scale = useSharedValue(HOLD_SCALE);
-  const shift = useSharedValue(0);
   const scroll = useSharedValue(0);
-  const scrollRange = useSharedValue(0);
-  const menuLeft = useSharedValue(0);
-  const menuOrigin = useSharedValue('top left');
+  const placement = useSharedValue(INITIAL_PLACEMENT);
   const isClosing = useRef(false);
+  const isMenuLocked = useSharedValue(false);
 
   const scrollGesture = usePanGesture({
     activeOffsetY: [-10, 10],
@@ -40,29 +49,25 @@ export function useMenuAnimation(onClosed: () => void) {
     onUpdate: (event) => {
       'worklet';
 
-      scroll.set(clamp(scroll.get() + event.changeY, 0, scrollRange.get()));
+      const { minScroll, maxScroll } = placement.get();
+
+      scroll.set(clamp(scroll.get() + event.changeY, minScroll, maxScroll));
     },
     onDeactivate: (event) => {
       'worklet';
 
-      scroll.set(withDecay({ velocity: event.velocityY, clamp: [0, scrollRange.get()] }));
+      const { minScroll, maxScroll } = placement.get();
+
+      scroll.set(withDecay({ velocity: event.velocityY, clamp: [minScroll, maxScroll] }));
     },
   });
 
-  const open = (placement: {
-    shift: number;
-    scrollRange: number;
-    left: number;
-    transformOrigin: string;
-  }) => {
+  const open = (nextPlacement: MenuPlacement) => {
     if (isClosing.current) {
       return;
     }
 
-    shift.set(placement.shift);
-    scrollRange.set(placement.scrollRange);
-    menuLeft.set(placement.left);
-    menuOrigin.set(placement.transformOrigin);
+    placement.set(nextPlacement);
 
     /*
      * Waits for the second UI frame: mounting keeps the main thread busy, so the first one carries
@@ -82,10 +87,11 @@ export function useMenuAnimation(onClosed: () => void) {
 
   const close = () => {
     if (isClosing.current) {
-      return false;
+      return;
     }
 
     isClosing.current = true;
+    isMenuLocked.set(true);
     progress.set(
       withTiming(0, CLOSE_TIMING, (finished) => {
         if (finished) {
@@ -93,8 +99,6 @@ export function useMenuAnimation(onClosed: () => void) {
         }
       }),
     );
-
-    return true;
   };
 
   // Touches only count once the menu is on its way, so it can't close before it opens.
@@ -108,20 +112,23 @@ export function useMenuAnimation(onClosed: () => void) {
 
   const copyStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateY: (shift.get() + scroll.get()) * progress.get() },
+      { translateY: (placement.get().shift + scroll.get()) * progress.get() },
       { scale: scale.get() },
     ],
   }));
 
   const menuStyle = useAnimatedStyle(() => {
     const value = progress.get();
+    const { shift, startOffset, left, transformOrigin } = placement.get();
 
     return {
       opacity: value,
-      transformOrigin: menuOrigin.get(),
+      // A closing menu is still on screen, and a second tap on its buttons must not land.
+      pointerEvents: isMenuLocked.get() ? 'none' : 'auto',
+      transformOrigin,
       transform: [
-        { translateX: menuLeft.get() },
-        { translateY: (shift.get() + scroll.get()) * value - (1 - value) * MENU_START_OFFSET },
+        { translateX: left },
+        { translateY: (shift + scroll.get()) * value + (1 - value) * startOffset },
         { scale: MENU_START_SCALE + (1 - MENU_START_SCALE) * value },
       ],
     };
