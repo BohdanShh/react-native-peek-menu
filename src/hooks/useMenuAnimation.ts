@@ -116,5 +116,14 @@ export function useMenuAnimation(onClosed: () => void) {
     };
   });
 
-  return { open, close, scrollGesture, overlayStyle, backdropStyle, copyStyle, menuStyle };
+  return {
+    progress,
+    open,
+    close,
+    scrollGesture,
+    overlayStyle,
+    backdropStyle,
+    copyStyle,
+    menuStyle,
+  };
 }
