@@ -14,13 +14,20 @@ import { useSharedValue, type SharedValue } from 'react-native-reanimated';
 
 import { PeekMenuOverlay } from './PeekMenuOverlay';
 import { BACKDROP_COLOR } from '../constants';
-import type { PeekMenuBackdropProps, PeekMenuInsets, PeekMenuItem, PeekMenuRect } from '../types';
+import type {
+  PeekMenuBackdropProps,
+  PeekMenuInsets,
+  PeekMenuItem,
+  PeekMenuRenderProps,
+  PeekMenuRect,
+} from '../types';
 
 type PeekMenuRequest = {
   id: string;
   items: PeekMenuItem[];
   rect: PeekMenuRect;
   content: ReactNode;
+  renderMenu?: (props: PeekMenuRenderProps) => ReactNode;
   onOpen?: () => void;
   onClose?: () => void;
 };
@@ -32,6 +39,7 @@ export type ActivePeekMenu = PeekMenuRequest & {
 type PeekMenuControls = {
   open: (request: PeekMenuRequest) => void;
   activeId: SharedValue<string | null>;
+  hasRenderMenu: boolean;
 };
 
 export type PeekMenuProviderProps = {
@@ -59,6 +67,15 @@ export type PeekMenuProviderProps = {
    * renderBackdrop={({ progress }) => <AnimatedBlur progress={progress} />}
    */
   renderBackdrop?: (props: PeekMenuBackdropProps) => ReactNode;
+  /**
+   * Renders every menu instead of the default list, for things like a dark theme. It sizes itself,
+   * and the library only positions it, animates it and closes it. A fixed `width` should come with
+   * `maxWidth: '100%'` to stay on screen. A `PeekMenu` can override it with its own `renderMenu`.
+   *
+   * @example
+   * renderMenu={({ items, onItemPress }) => <MyMenu items={items} onSelect={onItemPress} />}
+   */
+  renderMenu?: (props: PeekMenuRenderProps) => ReactNode;
 };
 
 const PeekMenuControlsContext = createContext<PeekMenuControls | null>(null);
@@ -72,6 +89,7 @@ export function PeekMenuProvider({
   safeAreaInsets = { top: 0, bottom: 0, left: 0, right: 0 },
   backdropColor = BACKDROP_COLOR,
   renderBackdrop,
+  renderMenu,
 }: PeekMenuProviderProps) {
   const [activeMenu, setActiveMenu] = useState<ActivePeekMenu | null>(null);
   const activeId = useSharedValue<string | null>(null);
@@ -88,7 +106,11 @@ export function PeekMenuProvider({
 
   const close = useCallback(() => setActiveMenu(null), []);
 
-  const controls = useMemo(() => ({ open, activeId }), [open, activeId]);
+  const hasRenderMenu = renderMenu !== undefined;
+  const controls = useMemo(
+    () => ({ open, activeId, hasRenderMenu }),
+    [open, activeId, hasRenderMenu],
+  );
 
   return (
     <PeekMenuControlsContext.Provider value={controls}>
@@ -102,6 +124,7 @@ export function PeekMenuProvider({
               safeAreaInsets={safeAreaInsets}
               backdropColor={backdropColor}
               renderBackdrop={renderBackdrop}
+              renderMenu={renderMenu}
               onClosed={close}
             />
           )}
