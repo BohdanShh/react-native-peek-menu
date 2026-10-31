@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { scheduleOnUI } from 'react-native-worklets';
 
@@ -14,8 +15,13 @@ export function useMenuAnimation(onClosed: () => void) {
   // Starts where the hold left it, so the copy takes over without a jump.
   const scale = useSharedValue(HOLD_SCALE);
   const shift = useSharedValue(0);
+  const isClosing = useRef(false);
 
   const open = (nextShift: number) => {
+    if (isClosing.current) {
+      return;
+    }
+
     shift.set(nextShift);
 
     /*
@@ -35,6 +41,11 @@ export function useMenuAnimation(onClosed: () => void) {
   };
 
   const close = () => {
+    if (isClosing.current) {
+      return false;
+    }
+
+    isClosing.current = true;
     progress.set(
       withTiming(0, CLOSE_TIMING, (finished) => {
         if (finished) {
@@ -42,6 +53,8 @@ export function useMenuAnimation(onClosed: () => void) {
         }
       }),
     );
+
+    return true;
   };
 
   // Touches only count once the menu is on its way, so it can't close before it opens.

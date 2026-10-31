@@ -36,8 +36,9 @@ export function PeekMenuOverlay({ menu, activeId, safeAreaInsets, onClosed }: Pr
   };
 
   const handleItemPress = (item: PeekMenuItem) => {
-    item.onPress();
-    animation.close();
+    if (animation.close()) {
+      item.onPress();
+    }
   };
 
   return (
