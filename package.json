@@ -27,6 +27,9 @@
     "context-menu",
     "long-press",
     "preview",
+    "peek",
+    "hold-menu",
+    "popup-menu",
     "shared-element-transition"
   ],
   "author": "BohdanShh <bohdanshh.dev@gmail.com>",
