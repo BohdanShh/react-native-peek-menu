@@ -8,7 +8,6 @@ import {
 } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated, { type SharedValue } from 'react-native-reanimated';
-import { scheduleOnRN } from 'react-native-worklets';
 
 import { PeekMenuList } from './PeekMenuList';
 import type { ActivePeekMenu } from './PeekMenuProvider';
@@ -43,28 +42,18 @@ export function PeekMenuOverlay({
 }: Props) {
   const { rect, root } = menu;
 
-  const handleClosed = () => {
-    onClosed();
-    menu.onClose?.();
-  };
-
-  const animation = useMenuAnimation(() => {
-    'worklet';
-
-    // The original has to be back before the copy on top of it goes.
-    activeId.set(null);
-    scheduleOnRN(handleClosed);
+  const animation = useMenuAnimation({
+    id: menu.id,
+    activeId,
+    onClosed: () => {
+      onClosed();
+      menu.onClose?.();
+    },
   });
 
   const handleMenuLayout = (event: LayoutChangeEvent) => {
-    // A resize while closing must not hide the original again: nothing would bring it back.
-    if (animation.isClosing.current) {
-      return;
-    }
-
     const { width, height } = event.nativeEvent.layout;
 
-    activeId.set(menu.id);
     animation.open({
       ...getMenuPlacement(rect, height, root.height, safeAreaInsets, menu.placement),
       ...getMenuPosition(rect, width, root.width, safeAreaInsets, menu.placement),
