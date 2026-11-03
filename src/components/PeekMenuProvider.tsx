@@ -8,7 +8,7 @@ import {
   type ComponentRef,
   type ReactNode,
 } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, useColorScheme, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSharedValue, type SharedValue } from 'react-native-reanimated';
 
@@ -54,6 +54,12 @@ export type PeekMenuProviderProps = {
    */
   safeAreaInsets?: PeekMenuInsets;
   /**
+   * The theme of the default menu. `'system'` follows the device's light or dark mode.
+   *
+   * @default 'system'
+   */
+  colorScheme?: 'system' | 'light' | 'dark';
+  /**
    * Color of the layer that dims the screen behind the menu. Use a translucent color to keep the
    * screen visible.
    *
@@ -89,6 +95,7 @@ const PeekMenuControlsContext = createContext<PeekMenuControls | null>(null);
 export function PeekMenuProvider({
   children,
   safeAreaInsets = { top: 0, bottom: 0, left: 0, right: 0 },
+  colorScheme = 'system',
   backdropColor = BACKDROP_COLOR,
   renderBackdrop,
   renderMenu,
@@ -96,6 +103,8 @@ export function PeekMenuProvider({
   const [activeMenu, setActiveMenu] = useState<ActivePeekMenu | null>(null);
   const activeId = useSharedValue<string | null>(null);
   const rootRef = useRef<ComponentRef<typeof View>>(null);
+  const systemColorScheme = useColorScheme();
+  const isDark = (colorScheme === 'system' ? systemColorScheme : colorScheme) === 'dark';
 
   const open = useCallback((request: PeekMenuRequest) => {
     // Window coordinates can start somewhere else than the root, by the status bar on Android.
@@ -124,6 +133,7 @@ export function PeekMenuProvider({
               menu={activeMenu}
               activeId={activeId}
               safeAreaInsets={safeAreaInsets}
+              isDark={isDark}
               backdropColor={backdropColor}
               renderBackdrop={renderBackdrop}
               renderMenu={renderMenu}

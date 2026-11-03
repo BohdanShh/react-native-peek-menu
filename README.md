@@ -77,7 +77,7 @@ export default function App() {
 
 ### Icons
 
-`icon` takes any element. Its color isn't changed by `destructive`.
+`icon` takes any element. Its color isn't changed by `destructive` or the dark theme.
 
 ```tsx
 <PeekMenu
@@ -114,7 +114,7 @@ The menu sizes itself to its content. A `width` wider than the screen needs `max
 
 ### Anything as a menu
 
-With `renderMenu` you don't need `items`. Show any component and call `close` when it's done. An action passed to `close` runs once, even on a fast double tap.
+With `renderMenu` you don't need `items`. Show any component and call `close` when it's done.
 
 ```tsx
 <PeekMenu renderMenu={({ close }) => <SaveCard onSave={() => close(() => save(message))} />}>
@@ -146,6 +146,7 @@ function MyCustomBackdrop({ progress }: PeekMenuBackdropProps) {
 | ---------------- | --------------------------------------------- | ------------------------- | -------------------------------------------------------------- |
 | `children`       | `ReactNode`                                   | required                  | The part of the app that can open menus.                       |
 | `safeAreaInsets` | `PeekMenuInsets`                              | All `0`                   | Space to keep clear on each side. Add a tab bar's height here. |
+| `colorScheme`    | `'system' \| 'light' \| 'dark'`               | `'system'`                | The theme of the default menu. `'system'` follows the device.  |
 | `backdropColor`  | `string`                                      | `'rgba(10, 14, 20, 0.5)'` | Color of the layer behind the menu.                            |
 | `renderBackdrop` | `(props: PeekMenuBackdropProps) => ReactNode` |                           | Replaces that layer, and `backdropColor` is ignored.           |
 | `renderMenu`     | `(props: PeekMenuRenderProps) => ReactNode`   |                           | Renders every menu. A `PeekMenu` can override it with its own. |

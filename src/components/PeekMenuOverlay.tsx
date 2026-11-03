@@ -30,6 +30,7 @@ type Props = {
   menu: ActivePeekMenu;
   activeId: SharedValue<string | null>;
   safeAreaInsets: PeekMenuInsets;
+  isDark: boolean;
   backdropColor: string;
   renderBackdrop?: (props: PeekMenuBackdropProps) => ReactNode;
   renderMenu?: (props: PeekMenuRenderProps) => ReactNode;
@@ -40,9 +41,10 @@ export function PeekMenuOverlay({
   menu,
   activeId,
   safeAreaInsets,
+  isDark,
   backdropColor,
   renderBackdrop,
-  renderMenu = (props) => <PeekMenuList {...props} />,
+  renderMenu = (props) => <PeekMenuList {...props} isDark={isDark} />,
   onClosed,
 }: Props) {
   const { rect, root } = menu;
