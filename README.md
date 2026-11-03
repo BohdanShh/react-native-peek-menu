@@ -10,6 +10,16 @@ A performant, fully customizable long-press context menu for React Native.
 
 </div>
 
+## Key features
+
+- No native code
+- Smooth animations
+- Always stays on screen
+- Fully customizable: the menu, the preview and the backdrop
+- Opens above or below the content
+- RTL support
+- Portrait and landscape support
+
 ## Installation
 
 Works with Expo and React Native CLI apps on the New Architecture.
