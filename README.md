@@ -75,67 +75,233 @@ export default function App() {
 
 ## Recipes
 
+### Safe area and a tab bar
+
+Pass the safe area so the menu keeps clear of the notch and the home indicator. If the provider also covers a tab bar, add its height to `bottom`.
+
+```tsx
+import { PeekMenuProvider } from 'react-native-peek-menu';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const TAB_BAR_HEIGHT = 60;
+
+function App() {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <PeekMenuProvider safeAreaInsets={{ ...insets, bottom: insets.bottom + TAB_BAR_HEIGHT }}>
+      <Chat />
+    </PeekMenuProvider>
+  );
+}
+```
+
 ### Icons
 
 `icon` takes any element. Its color isn't changed by `destructive` or the dark theme.
 
 ```tsx
-<PeekMenu
-  items={[
-    { title: 'Copy', icon: <CopyIcon />, onPress: copy },
-    { title: 'Share', icon: <ShareIcon />, iconPosition: 'left', onPress: share },
-  ]}
->
-  <Message />
-</PeekMenu>
+import { PeekMenu } from 'react-native-peek-menu';
+
+function ChatMessage({ message }: { message: Message }) {
+  return (
+    <PeekMenu
+      items={[
+        {
+          title: 'Copy',
+          icon: <CopyIcon />,
+          onPress: () => copy(message),
+        },
+        {
+          title: 'Share',
+          icon: <ShareIcon />,
+          iconPosition: 'left',
+          onPress: () => share(message),
+        },
+      ]}
+    >
+      <Bubble message={message} />
+    </PeekMenu>
+  );
+}
 ```
+
+### Haptics on open
+
+Add haptic feedback when a menu opens. Wrap `PeekMenu` once and use the wrapper across the app.
+
+```tsx
+import * as Haptics from 'expo-haptics';
+import { PeekMenu, type PeekMenuProps } from 'react-native-peek-menu';
+
+export function AppPeekMenu(props: PeekMenuProps) {
+  return (
+    <PeekMenu
+      {...props}
+      onOpen={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        props.onOpen?.();
+      }}
+    />
+  );
+}
+```
+
+### A custom backdrop
+
+Replace the dimmed layer behind the menu with your own, like a blur that fades in and out with the menu.
+
+```tsx
+import { BlurView } from 'expo-blur';
+import { StyleSheet } from 'react-native';
+import { PeekMenuProvider, type PeekMenuBackdropProps } from 'react-native-peek-menu';
+import Animated, { useAnimatedProps } from 'react-native-reanimated';
+
+const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
+
+function BlurBackdrop({ progress }: PeekMenuBackdropProps) {
+  const animatedProps = useAnimatedProps(() => ({
+    intensity: Math.min(progress.get(), 1) * 40,
+  }));
+
+  return (
+    <AnimatedBlurView tint="dark" animatedProps={animatedProps} style={StyleSheet.absoluteFill} />
+  );
+}
+
+function App() {
+  return (
+    <PeekMenuProvider renderBackdrop={(props) => <BlurBackdrop {...props} />}>
+      <Chat />
+    </PeekMenuProvider>
+  );
+}
+```
+
+On Android, `BlurView` shows a tinted layer instead of a blur unless you set up `blurTarget`, as described in the [expo-blur docs](https://docs.expo.dev/versions/latest/sdk/blur-view/).
 
 ### A custom menu
 
-`renderMenu` replaces the default list. Set it on `PeekMenuProvider` for all menus, or on a `PeekMenu` for just that one.
+Restyle the list to match your app. Set `renderMenu` on `PeekMenuProvider` for every menu, or on a `PeekMenu` for one. Rows call `onItemPress`, which closes the menu and runs the item's `onPress`.
 
 ```tsx
-function MyCustomMenu({ items, onItemPress }: PeekMenuRenderProps) {
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { PeekMenuProvider, type PeekMenuRenderProps } from 'react-native-peek-menu';
+
+function BrandMenu({ items, onItemPress }: PeekMenuRenderProps) {
   return (
     <View style={styles.menu}>
       {items.map((item) => (
-        <Pressable key={item.title} onPress={() => onItemPress(item)}>
-          <Text style={styles.title}>{item.title}</Text>
+        <Pressable key={item.title} onPress={() => onItemPress(item)} style={styles.row}>
+          <Text style={[styles.title, item.destructive && styles.destructive]}>{item.title}</Text>
         </Pressable>
       ))}
     </View>
   );
 }
 
-<PeekMenuProvider renderMenu={(props) => <MyCustomMenu {...props} />}>
+function App() {
+  return (
+    <PeekMenuProvider renderMenu={(props) => <BrandMenu {...props} />}>
+      <Chat />
+    </PeekMenuProvider>
+  );
+}
+
+const styles = StyleSheet.create({
+  menu: {
+    width: 240,
+    maxWidth: '100%',
+    borderRadius: 20,
+    backgroundColor: '#1E1B4B',
+  },
+  row: {
+    padding: 14,
+  },
+  title: {
+    color: '#EEF2FF',
+  },
+  destructive: {
+    color: '#FCA5A5',
+  },
+});
 ```
 
-The menu sizes itself to its content. A `width` wider than the screen needs `maxWidth: '100%'`.
+A custom menu needs a `width`, and `maxWidth: '100%'` keeps it on small screens.
 
 ### Anything as a menu
 
-With `renderMenu` you don't need `items`. Show any component and call `close` when it's done.
+`renderMenu` can show any element instead of the list, like a row of reactions. Call `close` when it's done and pass it the action to run.
 
 ```tsx
-<PeekMenu renderMenu={({ close }) => <SaveCard onSave={() => close(() => save(message))} />}>
-  <Message />
-</PeekMenu>
-```
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { PeekMenu } from 'react-native-peek-menu';
 
-### An animated backdrop
+const REACTIONS = ['❤️', '👍', '😂', '😮', '😢'];
 
-`renderBackdrop` replaces the default backdrop. Make it fill the screen and animate it with `progress`.
-
-```tsx
-function MyCustomBackdrop({ progress }: PeekMenuBackdropProps) {
-  const style = useAnimatedStyle(() => ({
-    opacity: Math.min(progress.get(), 1),
-  }));
-
-  return <Animated.View style={[StyleSheet.absoluteFill, styles.backdrop, style]} />;
+function Reactions({ onSelect }: { onSelect: (emoji: string) => void }) {
+  return (
+    <View style={styles.reactions}>
+      {REACTIONS.map((emoji) => (
+        <Pressable key={emoji} onPress={() => onSelect(emoji)} style={styles.reaction}>
+          <Text style={styles.emoji}>{emoji}</Text>
+        </Pressable>
+      ))}
+    </View>
+  );
 }
 
-<PeekMenuProvider renderBackdrop={(props) => <MyCustomBackdrop {...props} />}>
+function ChatMessage({ message }: { message: Message }) {
+  return (
+    <PeekMenu
+      renderMenu={({ close }) => (
+        <Reactions onSelect={(emoji) => close(() => react(message.id, emoji))} />
+      )}
+    >
+      <Bubble message={message} />
+    </PeekMenu>
+  );
+}
+
+const styles = StyleSheet.create({
+  reactions: {
+    flexDirection: 'row',
+    gap: 4,
+    padding: 6,
+    borderRadius: 28,
+    backgroundColor: '#FFF',
+  },
+  reaction: {
+    padding: 6,
+  },
+  emoji: {
+    fontSize: 28,
+  },
+});
+```
+
+### A custom preview
+
+If the content reads a context, like a theme, pass what it needs through `preview`.
+
+```tsx
+import { PeekMenu } from 'react-native-peek-menu';
+
+function ThemedBubble({ message }: { message: Message }) {
+  const theme = useTheme();
+
+  return <Bubble message={message} theme={theme} />;
+}
+
+function ChatMessage({ message }: { message: Message }) {
+  const theme = useTheme();
+
+  return (
+    <PeekMenu items={items} preview={<Bubble message={message} theme={theme} />}>
+      <ThemedBubble message={message} />
+    </PeekMenu>
+  );
+}
 ```
 
 ## API
