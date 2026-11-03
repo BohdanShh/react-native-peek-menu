@@ -1,7 +1,7 @@
 {
   "name": "react-native-peek-menu",
   "version": "0.1.0",
-  "description": "Long-press context menu for React Native with previews and shared-element transitions.",
+  "description": "A performant, fully customizable long-press context menu for React Native.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "exports": {
@@ -29,8 +29,7 @@
     "preview",
     "peek",
     "hold-menu",
-    "popup-menu",
-    "shared-element-transition"
+    "popup-menu"
   ],
   "author": "BohdanShh <bohdanshh.dev@gmail.com>",
   "license": "MIT",
