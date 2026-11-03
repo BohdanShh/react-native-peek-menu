@@ -25,7 +25,7 @@ type MenuPlacement = {
   minScroll: number;
   maxScroll: number;
   startOffset: number;
-  left: number;
+  translateX: number;
   transformOrigin: string;
 };
 
@@ -34,7 +34,7 @@ const INITIAL_PLACEMENT: MenuPlacement = {
   minScroll: 0,
   maxScroll: 0,
   startOffset: 0,
-  left: 0,
+  translateX: 0,
   transformOrigin: 'top left',
 };
 
@@ -134,14 +134,14 @@ export function useMenuAnimation({ id, activeId, onClosed }: MenuAnimationConfig
 
   const menuStyle = useAnimatedStyle(() => {
     const value = progress.get();
-    const { shift, startOffset, left, transformOrigin } = placement.get();
+    const { shift, startOffset, translateX, transformOrigin } = placement.get();
 
     return {
       opacity: value,
       pointerEvents: isMenuLocked.get() ? 'none' : 'auto',
       transformOrigin,
       transform: [
-        { translateX: left },
+        { translateX },
         { translateY: (shift + scroll.get()) * value + (1 - value) * startOffset },
         { scale: MENU_START_SCALE + (1 - MENU_START_SCALE) * value },
       ],
