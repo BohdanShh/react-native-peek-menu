@@ -94,6 +94,26 @@ function App() {
 }
 ```
 
+### Above modals
+
+To open menus above modals on iOS, pass `FullWindowOverlay` from `react-native-screens`.
+
+```tsx
+import { Platform } from 'react-native';
+import { PeekMenuProvider } from 'react-native-peek-menu';
+import { FullWindowOverlay } from 'react-native-screens';
+
+function App() {
+  return (
+    <PeekMenuProvider overlayContainer={Platform.OS === 'ios' ? FullWindowOverlay : undefined}>
+      <Navigation />
+    </PeekMenuProvider>
+  );
+}
+```
+
+On Android, wrap the content of a `Modal` in its own `PeekMenuProvider`.
+
 ### Icons
 
 `icon` takes any element. Its color isn't changed by `destructive` or the dark theme.
@@ -306,14 +326,15 @@ function ChatMessage({ message }: { message: Message }) {
 
 ### `PeekMenuProviderProps`
 
-| Prop             | Type                                          | Default                   | Description                                                    |
-| ---------------- | --------------------------------------------- | ------------------------- | -------------------------------------------------------------- |
-| `children`       | `ReactNode`                                   | required                  | The part of the app that can open menus.                       |
-| `safeAreaInsets` | `PeekMenuInsets`                              | All `0`                   | Space to keep clear on each side. Add a tab bar's height here. |
-| `colorScheme`    | `'system' \| 'light' \| 'dark'`               | `'system'`                | The theme of the default menu. `'system'` follows the device.  |
-| `backdropColor`  | `string`                                      | `'rgba(10, 14, 20, 0.5)'` | Color of the layer behind the menu.                            |
-| `renderBackdrop` | `(props: PeekMenuBackdropProps) => ReactNode` |                           | Replaces that layer, and `backdropColor` is ignored.           |
-| `renderMenu`     | `(props: PeekMenuRenderProps) => ReactNode`   |                           | Renders every menu. A `PeekMenu` can override it with its own. |
+| Prop               | Type                                          | Default                   | Description                                                                                         |
+| ------------------ | --------------------------------------------- | ------------------------- | --------------------------------------------------------------------------------------------------- |
+| `children`         | `ReactNode`                                   | required                  | The part of the app that can open menus.                                                            |
+| `safeAreaInsets`   | `PeekMenuInsets`                              | All `0`                   | Space to keep clear on each side. Add a tab bar's height here.                                      |
+| `colorScheme`      | `'system' \| 'light' \| 'dark'`               | `'system'`                | The theme of the default menu. `'system'` follows the device.                                       |
+| `backdropColor`    | `string`                                      | `'rgba(10, 14, 20, 0.5)'` | Color of the layer behind the menu.                                                                 |
+| `renderBackdrop`   | `(props: PeekMenuBackdropProps) => ReactNode` |                           | Replaces that layer, and `backdropColor` is ignored.                                                |
+| `renderMenu`       | `(props: PeekMenuRenderProps) => ReactNode`   |                           | Renders every menu. A `PeekMenu` can override it with its own.                                      |
+| `overlayContainer` | `ComponentType<{ children: ReactNode }>`      |                           | Shows the open menu inside this component, like `FullWindowOverlay` to keep it above modals on iOS. |
 
 ### `PeekMenuProps`
 

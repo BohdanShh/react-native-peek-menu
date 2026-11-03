@@ -44,7 +44,10 @@ reinstall from it without repacking.
 ## Architecture
 
 `PeekMenuProvider` wraps its children in a `GestureHandlerRootView` and renders at most one
-`PeekMenuOverlay`, on top of them. Each `PeekMenu` reaches the provider through the context from
+`PeekMenuOverlay`, on top of them. With `overlayContainer` (like `FullWindowOverlay` on iOS), the
+overlay goes into a host view inside that component instead, with its own `GestureHandlerRootView`,
+since the container can be another window. The container stays mounted, and the host lets touches
+through. Each `PeekMenu` reaches the provider through the context from
 `usePeekMenu`. The provider owns `activeId`, a shared value with the id of the open menu.
 
 Opening:
@@ -55,8 +58,9 @@ Opening:
    `renderMenu` and the content to show (`preview ?? children`). These are captured at that moment
    and don't update while the menu is open. The scale sits on an inner view so it doesn't distort
    the measurement.
-3. The provider measures its root, subtracts the root's window offset from the rect (they differ on
-   Android by the status bar) and stores the active menu. While a menu is active, another `open`
+3. The provider measures where the overlay draws (its root, or the host inside `overlayContainer`),
+   subtracts that view's window offset from the rect (they differ on Android by the status bar) and
+   stores the active menu. While a menu is active, another `open`
    is ignored.
 4. `PeekMenuOverlay` mounts the backdrop, a copy of the content at the rect, and the menu. The menu
    starts invisible, and its `onLayout` (`handleMenuLayout`) reports its size.

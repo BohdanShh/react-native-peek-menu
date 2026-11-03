@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
   type ComponentRef,
+  type ComponentType,
   type ReactNode,
 } from 'react';
 import { StyleSheet, useColorScheme, View } from 'react-native';
@@ -84,6 +85,15 @@ export type PeekMenuProviderProps = {
    * renderMenu={({ items, onItemPress }) => <MyMenu items={items} onSelect={onItemPress} />}
    */
   renderMenu?: (props: PeekMenuRenderProps) => ReactNode;
+  /**
+   * Shows the open menu inside this component, for things like `FullWindowOverlay` from
+   * `react-native-screens`, which keeps the menu above modals and native sheets on iOS. It stays
+   * mounted and has to let touches through to the app while no menu is open.
+   *
+   * @example
+   * overlayContainer={FullWindowOverlay}
+   */
+  overlayContainer?: ComponentType<{ children: ReactNode }>;
 };
 
 const PeekMenuControlsContext = createContext<PeekMenuControls | null>(null);
@@ -99,21 +109,28 @@ export function PeekMenuProvider({
   backdropColor = BACKDROP_COLOR,
   renderBackdrop,
   renderMenu,
+  overlayContainer: OverlayContainer,
 }: PeekMenuProviderProps) {
   const [activeMenu, setActiveMenu] = useState<ActivePeekMenu | null>(null);
   const activeId = useSharedValue<string | null>(null);
   const rootRef = useRef<ComponentRef<typeof View>>(null);
+  const hostRef = useRef<ComponentRef<typeof View>>(null);
   const systemColorScheme = useColorScheme();
   const isDark = (colorScheme === 'system' ? systemColorScheme : colorScheme) === 'dark';
 
-  const open = useCallback((request: PeekMenuRequest) => {
-    // Window coordinates can start somewhere else than the root, by the status bar on Android.
-    rootRef.current?.measureInWindow((x, y, width, height) => {
-      const rect = { ...request.rect, x: request.rect.x - x, y: request.rect.y - y };
+  const open = useCallback(
+    (request: PeekMenuRequest) => {
+      // Window coordinates can start somewhere else than the root, by the status bar on Android.
+      const host = OverlayContainer ? hostRef.current : rootRef.current;
 
-      setActiveMenu((current) => current ?? { ...request, rect, root: { width, height } });
-    });
-  }, []);
+      host?.measureInWindow((x, y, width, height) => {
+        const rect = { ...request.rect, x: request.rect.x - x, y: request.rect.y - y };
+
+        setActiveMenu((current) => current ?? { ...request, rect, root: { width, height } });
+      });
+    },
+    [OverlayContainer],
+  );
 
   const close = useCallback(() => setActiveMenu(null), []);
 
@@ -123,22 +140,34 @@ export function PeekMenuProvider({
     [open, activeId, hasRenderMenu],
   );
 
+  const overlay = activeMenu && (
+    <PeekMenuOverlay
+      menu={activeMenu}
+      activeId={activeId}
+      safeAreaInsets={safeAreaInsets}
+      isDark={isDark}
+      backdropColor={backdropColor}
+      renderBackdrop={renderBackdrop}
+      renderMenu={renderMenu}
+      onClosed={close}
+    />
+  );
+
   return (
     <PeekMenuControlsContext.Provider value={controls}>
       <GestureHandlerRootView style={styles.root}>
         <View ref={rootRef} collapsable={false} style={styles.root}>
           {children}
-          {activeMenu && (
-            <PeekMenuOverlay
-              menu={activeMenu}
-              activeId={activeId}
-              safeAreaInsets={safeAreaInsets}
-              isDark={isDark}
-              backdropColor={backdropColor}
-              renderBackdrop={renderBackdrop}
-              renderMenu={renderMenu}
-              onClosed={close}
-            />
+          {OverlayContainer ? (
+            <OverlayContainer>
+              <GestureHandlerRootView style={styles.host}>
+                <View ref={hostRef} collapsable={false} style={styles.host}>
+                  {overlay}
+                </View>
+              </GestureHandlerRootView>
+            </OverlayContainer>
+          ) : (
+            overlay
           )}
         </View>
       </GestureHandlerRootView>
@@ -149,6 +178,14 @@ export function PeekMenuProvider({
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+  },
+  host: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    pointerEvents: 'box-none',
   },
 });
 
