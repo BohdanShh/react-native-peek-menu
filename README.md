@@ -4,9 +4,7 @@
 
 A performant, fully customizable long-press context menu for React Native.
 
-<img src="assets/chat.gif" width="280" alt="Holding a chat message opens a frosted glass menu over a blurred screen" />
-&nbsp;&nbsp;&nbsp;
-<img src="assets/shop.gif" width="280" alt="Holding a sneaker in a shop lifts it above a blurred screen and opens a size picker with an Add to bag button" />
+<img src="assets/demo.gif" width="280" alt="Holding a folder lifts it above a blurred screen and opens a frosted menu with Open, Rename, Share, Move, Add Tags and Delete" />
 
 </div>
 
