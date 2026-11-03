@@ -114,57 +114,6 @@ function App() {
 
 On Android, wrap the content of a `Modal` in its own `PeekMenuProvider`.
 
-### Icons
-
-`icon` takes any element. Its color isn't changed by `destructive` or the dark theme.
-
-```tsx
-import { PeekMenu } from 'react-native-peek-menu';
-
-function ChatMessage({ message }: { message: Message }) {
-  return (
-    <PeekMenu
-      items={[
-        {
-          title: 'Copy',
-          icon: <CopyIcon />,
-          onPress: () => copy(message),
-        },
-        {
-          title: 'Share',
-          icon: <ShareIcon />,
-          iconPosition: 'left',
-          onPress: () => share(message),
-        },
-      ]}
-    >
-      <Bubble message={message} />
-    </PeekMenu>
-  );
-}
-```
-
-### Haptics on open
-
-Add haptic feedback when a menu opens. Wrap `PeekMenu` once and use the wrapper across the app.
-
-```tsx
-import * as Haptics from 'expo-haptics';
-import { PeekMenu, type PeekMenuProps } from 'react-native-peek-menu';
-
-export function AppPeekMenu(props: PeekMenuProps) {
-  return (
-    <PeekMenu
-      {...props}
-      onOpen={() => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        props.onOpen?.();
-      }}
-    />
-  );
-}
-```
-
 ### A custom backdrop
 
 Replace the dimmed layer behind the menu with your own, like a blur that fades in and out with the menu.
@@ -318,6 +267,27 @@ function ChatMessage({ message }: { message: Message }) {
     <PeekMenu items={items} preview={<Bubble message={message} theme={theme} />}>
       <ThemedBubble message={message} />
     </PeekMenu>
+  );
+}
+```
+
+### Haptics on open
+
+Add haptic feedback when a menu opens. Wrap `PeekMenu` once and use the wrapper across the app.
+
+```tsx
+import * as Haptics from 'expo-haptics';
+import { PeekMenu, type PeekMenuProps } from 'react-native-peek-menu';
+
+export function AppPeekMenu(props: PeekMenuProps) {
+  return (
+    <PeekMenu
+      {...props}
+      onOpen={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        props.onOpen?.();
+      }}
+    />
   );
 }
 ```
