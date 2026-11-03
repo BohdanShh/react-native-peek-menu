@@ -8,10 +8,17 @@ import {
   withDecay,
   withSpring,
   withTiming,
+  type SharedValue,
 } from 'react-native-reanimated';
-import { scheduleOnUI } from 'react-native-worklets';
+import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets';
 
 import { CLOSE_TIMING, HOLD_SCALE, MENU_START_SCALE, OPEN_SPRING } from '../constants';
+
+type MenuAnimationConfig = {
+  id: string;
+  activeId: SharedValue<string | null>;
+  onClosed: () => void;
+};
 
 type MenuPlacement = {
   shift: number;
@@ -31,7 +38,7 @@ const INITIAL_PLACEMENT: MenuPlacement = {
   transformOrigin: 'top left',
 };
 
-export function useMenuAnimation(onClosed: () => void) {
+export function useMenuAnimation({ id, activeId, onClosed }: MenuAnimationConfig) {
   const progress = useSharedValue(0);
   const scale = useSharedValue(HOLD_SCALE);
   const scroll = useSharedValue(0);
@@ -63,6 +70,12 @@ export function useMenuAnimation(onClosed: () => void) {
   });
 
   const open = (nextPlacement: MenuPlacement) => {
+    // A resize while closing must not hide the original again: nothing would bring it back.
+    if (isClosing.current) {
+      return;
+    }
+
+    activeId.set(id);
     placement.set(nextPlacement);
 
     /*
@@ -91,7 +104,9 @@ export function useMenuAnimation(onClosed: () => void) {
     progress.set(
       withTiming(0, CLOSE_TIMING, (finished) => {
         if (finished) {
-          onClosed();
+          // The original has to be back before the copy on top of it goes.
+          activeId.set(null);
+          scheduleOnRN(onClosed);
         }
       }),
     );
@@ -135,7 +150,6 @@ export function useMenuAnimation(onClosed: () => void) {
 
   return {
     progress,
-    isClosing,
     open,
     close,
     scrollGesture,
