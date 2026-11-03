@@ -341,6 +341,7 @@ A `PeekMenu` needs `items`, `renderMenu`, or both.
 | `title`        | `string`            | required  | Text shown in the row.                                       |
 | `onPress`      | `() => void`        | required  | Called when the row is pressed, as the menu starts to close. |
 | `destructive`  | `boolean`           | `false`   | Shows the title in red, for actions like Delete.             |
+| `disabled`     | `boolean`           | `false`   | Shows the row dimmed and stops it from being pressed.        |
 | `icon`         | `ReactNode`         |           | Any element to show beside the title.                        |
 | `iconPosition` | `'left' \| 'right'` | `'right'` | The side of the row the icon sits on.                        |
 
@@ -351,7 +352,7 @@ What `renderMenu` receives.
 | Field         | Type                            | Description                                                             |
 | ------------- | ------------------------------- | ----------------------------------------------------------------------- |
 | `items`       | `PeekMenuItem[]`                | The rows of the open menu, empty if it has none.                        |
-| `onItemPress` | `(item: PeekMenuItem) => void`  | Closes the menu and calls the item's `onPress`. Rows should call this.  |
+| `onItemPress` | `(item: PeekMenuItem) => void`  | Closes the menu and calls the item's `onPress`. Skips disabled items.   |
 | `close`       | `(action?: () => void) => void` | Closes the menu and runs `action` once.                                 |
 | `progress`    | `SharedValue<number>`           | From 0 when closed to 1 when open. The open spring can pass 1 slightly. |
 

@@ -16,6 +16,8 @@ export function PeekMenuList({ items, onItemPress, isDark }: Props) {
         <Pressable
           key={index}
           accessibilityRole="menuitem"
+          accessibilityState={{ disabled: item.disabled }}
+          disabled={item.disabled}
           onPress={() => onItemPress(item)}
           style={({ pressed }) => [
             styles.item,
@@ -24,10 +26,17 @@ export function PeekMenuList({ items, onItemPress, isDark }: Props) {
             pressed && colors.pressed,
           ]}
         >
-          <Text style={[styles.title, colors.title, item.destructive && colors.destructive]}>
+          <Text
+            style={[
+              styles.title,
+              colors.title,
+              item.destructive && colors.destructive,
+              item.disabled && styles.disabled,
+            ]}
+          >
             {item.title}
           </Text>
-          {item.icon}
+          {item.icon && <View style={item.disabled && styles.disabled}>{item.icon}</View>}
         </Pressable>
       ))}
     </View>
@@ -57,6 +66,9 @@ const styles = StyleSheet.create({
   title: {
     flex: 1,
     fontSize: 16,
+  },
+  disabled: {
+    opacity: 0.4,
   },
 });
 
