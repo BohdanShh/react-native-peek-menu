@@ -68,6 +68,10 @@ export function PeekMenuOverlay({
   };
 
   const handleItemPress = (item: PeekMenuItem) => {
+    if (item.disabled) {
+      return;
+    }
+
     animation.close(item.onPress);
   };
 

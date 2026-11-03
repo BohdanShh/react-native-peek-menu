@@ -10,6 +10,13 @@ export type PeekMenuItem = {
   /** Shows the title in red, for actions like Delete. */
   destructive?: boolean;
   /**
+   * Shows the row dimmed and stops it from being pressed, for actions that aren't available right
+   * now.
+   *
+   * @default false
+   */
+  disabled?: boolean;
+  /**
    * Any element to show beside the title. Its color isn't changed by `destructive` or the dark
    * theme.
    */
@@ -35,7 +42,10 @@ export type PeekMenuBackdropProps = {
 export type PeekMenuRenderProps = {
   /** The `items` of the open menu, empty if it has none. */
   items: PeekMenuItem[];
-  /** Closes the menu and calls the item's `onPress`. Rows should call this, not `onPress`. */
+  /**
+   * Closes the menu and calls the item's `onPress`. Rows should call this, not `onPress`. It does
+   * nothing for a disabled item.
+   */
   onItemPress: (item: PeekMenuItem) => void;
   /**
    * Closes the menu. `action` runs as it starts to close, and only once: a repeat press skips it.

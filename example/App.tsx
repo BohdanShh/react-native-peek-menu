@@ -16,6 +16,7 @@ type Message = {
 const ITEMS = [
   { title: 'Reply', onPress: () => console.log('Reply') },
   { title: 'Copy', onPress: () => console.log('Copy') },
+  { title: 'Edit', disabled: true, onPress: () => console.log('Edit') },
   { title: 'Delete', destructive: true, onPress: () => console.log('Delete') },
 ];
 
