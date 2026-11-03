@@ -1,4 +1,4 @@
-import type { WithSpringConfig, WithTimingConfig } from 'react-native-reanimated';
+import { Easing, type WithSpringConfig, type WithTimingConfig } from 'react-native-reanimated';
 
 export const BACKDROP_COLOR = 'rgba(10, 14, 20, 0.5)';
 
@@ -17,4 +17,4 @@ export const MENU_START_SCALE = 0.92;
 export const MENU_START_OFFSET = 8;
 
 export const OPEN_SPRING: WithSpringConfig = { duration: 250, dampingRatio: 0.9 };
-export const CLOSE_TIMING: WithTimingConfig = { duration: 180 };
+export const CLOSE_TIMING: WithTimingConfig = { duration: 180, easing: Easing.out(Easing.cubic) };
