@@ -9,7 +9,10 @@ export type PeekMenuItem = {
   onPress: () => void;
   /** Shows the title in red, for actions like Delete. */
   destructive?: boolean;
-  /** Any element to show beside the title. Its color isn't changed by `destructive`. */
+  /**
+   * Any element to show beside the title. Its color isn't changed by `destructive` or the dark
+   * theme.
+   */
   icon?: ReactNode;
   /**
    * The side of the row the icon sits on.
