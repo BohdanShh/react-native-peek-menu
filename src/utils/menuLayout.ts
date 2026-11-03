@@ -1,3 +1,5 @@
+import { I18nManager } from 'react-native';
+
 import {
   MENU_GAP,
   MENU_START_OFFSET,
@@ -6,6 +8,13 @@ import {
   SCREEN_PADDING_TOP,
 } from '../constants';
 import type { PeekMenuInsets, PeekMenuPlacement, PeekMenuRect } from '../types';
+
+// In RTL, React Native measures `left` from the right edge, but measurements stay physical.
+export function getStyleLeft(x: number, width: number, rootWidth: number) {
+  const { isRTL, doLeftAndRightSwapInRTL } = I18nManager.getConstants();
+
+  return isRTL && doLeftAndRightSwapInRTL ? rootWidth - x - width : x;
+}
 
 export function getMenuMaxWidth(rootWidth: number, insets: PeekMenuInsets) {
   return rootWidth - insets.left - insets.right - SCREEN_PADDING_HORIZONTAL * 2;
@@ -23,8 +32,10 @@ export function getMenuPosition(
   const minLeft = insets.left + SCREEN_PADDING_HORIZONTAL;
   const maxLeft = rootWidth - insets.right - SCREEN_PADDING_HORIZONTAL - menuWidth;
 
+  const clampedLeft = Math.max(minLeft, Math.min(left, maxLeft));
+
   return {
-    left: Math.max(minLeft, Math.min(left, maxLeft)),
+    translateX: clampedLeft - getStyleLeft(0, menuWidth, rootWidth),
     transformOrigin: `${placement === 'top' ? 'bottom' : 'top'} ${isOnRightSide ? 'right' : 'left'}`,
   };
 }

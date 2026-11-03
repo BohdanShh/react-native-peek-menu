@@ -19,7 +19,12 @@ import type {
   PeekMenuItem,
   PeekMenuRenderProps,
 } from '../types';
-import { getMenuMaxWidth, getMenuPlacement, getMenuPosition } from '../utils/menuLayout';
+import {
+  getMenuMaxWidth,
+  getMenuPlacement,
+  getMenuPosition,
+  getStyleLeft,
+} from '../utils/menuLayout';
 
 type Props = {
   menu: ActivePeekMenu;
@@ -106,7 +111,12 @@ export function PeekMenuOverlay({
         <Animated.View
           style={[
             styles.copy,
-            { left: rect.x, top: rect.y, width: rect.width, height: rect.height },
+            {
+              left: getStyleLeft(rect.x, rect.width, root.width),
+              top: rect.y,
+              width: rect.width,
+              height: rect.height,
+            },
             animation.copyStyle,
           ]}
         >
