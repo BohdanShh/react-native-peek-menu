@@ -15,7 +15,6 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # Keep the job id: the main ruleset requires the "check" status.
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 15
