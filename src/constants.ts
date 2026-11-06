@@ -11,10 +11,10 @@ export const SCREEN_PADDING_HORIZONTAL = 12;
 export const HOLD_DURATION = 300;
 export const HOLD_DELAY_RATIO = 0.4;
 export const HOLD_SCALE = 0.97;
-export const RELEASE_DURATION = 120;
+export const RELEASE_DURATION = 150;
 
-export const MENU_START_SCALE = 0.92;
-export const MENU_START_OFFSET = 8;
+export const MENU_START_SCALE = 0.8;
+export const MENU_START_OFFSET = 12;
 
-export const OPEN_SPRING: WithSpringConfig = { duration: 250, dampingRatio: 0.9 };
-export const CLOSE_TIMING: WithTimingConfig = { duration: 180, easing: Easing.out(Easing.cubic) };
+export const OPEN_SPRING: WithSpringConfig = { duration: 300, dampingRatio: 0.82 };
+export const CLOSE_TIMING: WithTimingConfig = { duration: 160, easing: Easing.out(Easing.quad) };

@@ -137,7 +137,7 @@ export function useMenuAnimation({ id, activeId, onClosed }: MenuAnimationConfig
     const { shift, startOffset, translateX, transformOrigin } = placement.get();
 
     return {
-      opacity: value,
+      opacity: Math.min(value * 2, 1),
       pointerEvents: isMenuLocked.get() ? 'none' : 'auto',
       transformOrigin,
       transform: [
