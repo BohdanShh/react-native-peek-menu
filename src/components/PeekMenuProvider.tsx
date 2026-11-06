@@ -9,7 +9,7 @@ import {
   type ComponentType,
   type ReactNode,
 } from 'react';
-import { StyleSheet, useColorScheme, View } from 'react-native';
+import { Keyboard, StyleSheet, useColorScheme, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSharedValue, type SharedValue } from 'react-native-reanimated';
 
@@ -37,6 +37,8 @@ type PeekMenuRequest = {
 
 export type ActivePeekMenu = PeekMenuRequest & {
   root: { width: number; height: number };
+  /** How much of the root's bottom the keyboard covers when the menu opens. */
+  keyboardOverlap: number;
 };
 
 type PeekMenuControls = {
@@ -125,8 +127,14 @@ export function PeekMenuProvider({
 
       host?.measureInWindow((x, y, width, height) => {
         const rect = { ...request.rect, x: request.rect.x - x, y: request.rect.y - y };
+        // The keyboard's top edge is in window coordinates too, so this works whether the root
+        // ends behind the keyboard or above it.
+        const keyboard = Keyboard.metrics();
+        const keyboardOverlap = keyboard ? Math.max(y + height - keyboard.screenY, 0) : 0;
 
-        setActiveMenu((current) => current ?? { ...request, rect, root: { width, height } });
+        setActiveMenu(
+          (current) => current ?? { ...request, rect, root: { width, height }, keyboardOverlap },
+        );
       });
     },
     [OverlayContainer],

@@ -59,9 +59,10 @@ Opening:
    and don't update while the menu is open. The scale sits on an inner view so it doesn't distort
    the measurement.
 3. The provider measures where the overlay draws (its root, or the host inside `overlayContainer`),
-   subtracts that view's window offset from the rect (they differ on Android by the status bar) and
-   stores the active menu. While a menu is active, another `open`
-   is ignored.
+   subtracts that view's window offset from the rect (they differ on Android by the status bar),
+   records how much of the root's bottom the keyboard covers (from `Keyboard.metrics().screenY`,
+   used as the bottom inset when larger than `safeAreaInsets.bottom`) and stores the active menu.
+   While a menu is active, another `open` is ignored.
 4. `PeekMenuOverlay` mounts the backdrop, a copy of the content at the rect, and the menu. The menu
    starts invisible, and its `onLayout` (`handleMenuLayout`) reports its size.
 5. With that size, `getMenuPlacement` and `getMenuPosition` in `src/utils/menuLayout.ts` compute the
