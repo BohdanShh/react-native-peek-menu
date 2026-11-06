@@ -48,6 +48,10 @@ export function PeekMenuOverlay({
   onClosed,
 }: Props) {
   const { rect, root } = menu;
+  const insets = {
+    ...safeAreaInsets,
+    bottom: Math.max(safeAreaInsets.bottom, menu.keyboardOverlap),
+  };
 
   const animation = useMenuAnimation({
     id: menu.id,
@@ -62,8 +66,8 @@ export function PeekMenuOverlay({
     const { width, height } = event.nativeEvent.layout;
 
     animation.open({
-      ...getMenuPlacement(rect, height, root.height, safeAreaInsets, menu.placement),
-      ...getMenuPosition(rect, width, root.width, safeAreaInsets, menu.placement),
+      ...getMenuPlacement(rect, height, root.height, insets, menu.placement),
+      ...getMenuPosition(rect, width, root.width, insets, menu.placement),
     });
   };
 
@@ -136,7 +140,7 @@ export function PeekMenuOverlay({
               ...(menu.placement === 'top'
                 ? { bottom: root.height - rect.y + MENU_GAP }
                 : { top: rect.y + rect.height + MENU_GAP }),
-              maxWidth: getMenuMaxWidth(root.width, safeAreaInsets),
+              maxWidth: getMenuMaxWidth(root.width, insets),
             },
             animation.menuStyle,
           ]}

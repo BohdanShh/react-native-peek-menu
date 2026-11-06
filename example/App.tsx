@@ -1,5 +1,16 @@
 import { StatusBar } from 'expo-status-bar';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { useRef, useState } from 'react';
+import {
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { PeekMenu, PeekMenuProvider } from 'react-native-peek-menu';
 import {
   initialWindowMetrics,
@@ -13,17 +24,10 @@ type Message = {
   isOwn: boolean;
 };
 
-const ITEMS = [
-  { title: 'Reply', onPress: () => console.log('Reply') },
-  { title: 'Copy', onPress: () => console.log('Copy') },
-  { title: 'Edit', disabled: true, onPress: () => console.log('Edit') },
-  { title: 'Delete', destructive: true, onPress: () => console.log('Delete') },
-];
-
 const LONG_MESSAGE =
   'So here is everything that happened on the way to the station this morning. '.repeat(40);
 
-const MESSAGES: Message[] = [
+const INITIAL_MESSAGES: Message[] = [
   { id: '1', text: 'Hey! Are you free tonight?', isOwn: false },
   { id: '2', text: 'Should be, what are you thinking?', isOwn: true },
   { id: '3', text: 'That new ramen place finally opened', isOwn: false },
@@ -64,33 +68,152 @@ const MESSAGES: Message[] = [
   { id: '34', text: 'Sorry, that was a long one', isOwn: true },
 ];
 
-function MessageRow({ message }: { message: Message }) {
+// How long after a menu opens the "while open" switches change the list.
+const WHILE_OPEN_DELAY = 1500;
+
+type MessageRowProps = {
+  message: Message;
+  isSelected: boolean;
+  onTap: (id: string) => void;
+  onDelete: (id: string) => void;
+  onOpen: (id: string) => void;
+};
+
+function MessageRow({ message, isSelected, onTap, onDelete, onOpen }: MessageRowProps) {
   return (
     <View style={[styles.row, message.isOwn && styles.ownRow]}>
-      <PeekMenu items={ITEMS}>
-        <View style={[styles.bubble, message.isOwn && styles.ownBubble]}>
+      <PeekMenu
+        items={[
+          { title: 'Reply', onPress: () => console.log('Reply', message.id) },
+          { title: 'Copy', onPress: () => console.log('Copy', message.id) },
+          { title: 'Edit', disabled: true, onPress: () => console.log('Edit', message.id) },
+          { title: 'Delete', destructive: true, onPress: () => onDelete(message.id) },
+        ]}
+        onOpen={() => onOpen(message.id)}
+        onClose={() => console.log('Menu closed', message.id)}
+      >
+        {/* Check 2: a tap selects the bubble, so it must stay unselected after a hold. */}
+        <Pressable
+          onPress={() => onTap(message.id)}
+          style={[
+            styles.bubble,
+            message.isOwn && styles.ownBubble,
+            isSelected && styles.selectedBubble,
+          ]}
+        >
           <Text style={styles.text}>{message.text}</Text>
-        </View>
+        </Pressable>
       </PeekMenu>
+    </View>
+  );
+}
+
+function Toggle({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: boolean;
+  onChange: (value: boolean) => void;
+}) {
+  return (
+    <View style={styles.toggle}>
+      <Text style={styles.toggleLabel}>{label}</Text>
+      <Switch value={value} onValueChange={onChange} />
     </View>
   );
 }
 
 function Chat() {
   const insets = useSafeAreaInsets();
+  const [messages, setMessages] = useState(INITIAL_MESSAGES);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [draft, setDraft] = useState('');
+  const [addWhileOpen, setAddWhileOpen] = useState(false);
+  const [deleteWhileOpen, setDeleteWhileOpen] = useState(false);
+  const nextId = useRef(INITIAL_MESSAGES.length + 1);
+
+  const addMessage = (text: string, isOwn: boolean) => {
+    const id = String(nextId.current++);
+
+    setMessages((current) => [...current, { id, text, isOwn }]);
+  };
+
+  const deleteMessage = (id: string) => {
+    setMessages((current) => current.filter((message) => message.id !== id));
+  };
+
+  const handleTap = (id: string) => {
+    console.log('Bubble tapped', id);
+    setSelectedId((current) => (current === id ? null : id));
+  };
+
+  // Check 3: the list changes under the open menu.
+  const handleOpen = (id: string) => {
+    console.log('Menu opened', id);
+
+    if (addWhileOpen) {
+      setTimeout(
+        () => addMessage('A new message arrived while the menu was open', false),
+        WHILE_OPEN_DELAY,
+      );
+    }
+
+    if (deleteWhileOpen) {
+      setTimeout(() => deleteMessage(id), WHILE_OPEN_DELAY);
+    }
+  };
+
+  const send = () => {
+    if (draft.trim()) {
+      addMessage(draft.trim(), true);
+      setDraft('');
+    }
+  };
 
   return (
     <PeekMenuProvider safeAreaInsets={insets}>
-      <FlatList
-        data={MESSAGES}
-        keyExtractor={(message) => message.id}
-        renderItem={({ item }) => <MessageRow message={item} />}
-        style={styles.list}
-        contentContainerStyle={[
-          styles.content,
-          { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 12 },
-        ]}
-      />
+      <View style={[styles.panel, { paddingTop: insets.top + 6 }]}>
+        <Toggle label="New message while open" value={addWhileOpen} onChange={setAddWhileOpen} />
+        <Toggle
+          label="Delete the held message while open"
+          value={deleteWhileOpen}
+          onChange={setDeleteWhileOpen}
+        />
+      </View>
+      {/* Check 1: with the keyboard up, hold the last messages. */}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.flex}
+      >
+        <FlatList
+          data={messages}
+          keyExtractor={(message) => message.id}
+          renderItem={({ item }) => (
+            <MessageRow
+              message={item}
+              isSelected={item.id === selectedId}
+              onTap={handleTap}
+              onDelete={deleteMessage}
+              onOpen={handleOpen}
+            />
+          )}
+          keyboardShouldPersistTaps="handled"
+          style={styles.list}
+          contentContainerStyle={styles.content}
+        />
+        <View style={[styles.composer, { paddingBottom: insets.bottom + 8 }]}>
+          <TextInput
+            value={draft}
+            onChangeText={setDraft}
+            onSubmitEditing={send}
+            placeholder="Message"
+            returnKeyType="send"
+            style={styles.input}
+          />
+        </View>
+      </KeyboardAvoidingView>
       <StatusBar style="auto" />
     </PeekMenuProvider>
   );
@@ -105,6 +228,24 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
+  panel: {
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingBottom: 6,
+    backgroundColor: '#F4F6F8',
+  },
+  toggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  toggleLabel: {
+    fontSize: 14,
+    color: '#333',
+  },
   list: {
     flex: 1,
     backgroundColor: '#DCE6EE',
@@ -112,6 +253,7 @@ const styles = StyleSheet.create({
   content: {
     gap: 6,
     paddingHorizontal: 10,
+    paddingVertical: 12,
   },
   row: {
     maxWidth: '80%',
@@ -129,8 +271,24 @@ const styles = StyleSheet.create({
   ownBubble: {
     backgroundColor: '#D9FDD3',
   },
+  selectedBubble: {
+    borderWidth: 2,
+    borderColor: '#2F80ED',
+  },
   text: {
     fontSize: 16,
     color: '#111',
+  },
+  composer: {
+    paddingHorizontal: 10,
+    paddingTop: 8,
+    backgroundColor: '#F4F6F8',
+  },
+  input: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
+    fontSize: 16,
+    backgroundColor: '#FFF',
   },
 });
