@@ -4,7 +4,7 @@
 
 A performant, fully customizable long-press context menu for React Native.
 
-<img src="assets/demo.gif" width="280" alt="Holding a folder lifts it above a blurred screen and opens a frosted menu with Open, Rename, Share, Move, Add Tags and Delete" />
+<img src=".github/demo.gif" width="280" alt="Holding a folder lifts it above a blurred screen and opens a frosted menu with Open, Rename, Share, Move, Add Tags and Delete" />
 
 </div>
 
