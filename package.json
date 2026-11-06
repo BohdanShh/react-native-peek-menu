@@ -40,8 +40,8 @@
   "homepage": "https://github.com/BohdanShh/react-native-peek-menu#readme",
   "bugs": "https://github.com/BohdanShh/react-native-peek-menu/issues",
   "peerDependencies": {
-    "react": "*",
-    "react-native": "*",
+    "react": ">=19",
+    "react-native": ">=0.86",
     "react-native-gesture-handler": ">=3.3.0",
     "react-native-reanimated": ">=4.7.0",
     "react-native-worklets": ">=0.13.0"
