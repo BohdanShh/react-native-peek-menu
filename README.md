@@ -24,6 +24,8 @@ Works with Expo and React Native CLI apps on the New Architecture.
 
 Peer dependencies:
 
+- `react` >= 19
+- `react-native` >= 0.86
 - `react-native-reanimated` >= 4.7
 - `react-native-worklets` >= 0.13
 - `react-native-gesture-handler` >= 3.3
