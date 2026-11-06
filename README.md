@@ -4,7 +4,6 @@
 
 A performant, fully customizable long-press context menu for React Native.
 
-[![npm](https://img.shields.io/npm/v/react-native-peek-menu)](https://www.npmjs.com/package/react-native-peek-menu)
 [![CI](https://img.shields.io/github/actions/workflow/status/BohdanShh/react-native-peek-menu/ci.yml?branch=main&label=CI)](https://github.com/BohdanShh/react-native-peek-menu/actions/workflows/ci.yml)
 [![bundle size](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fdeno.bundlejs.com%2F%3Fq%3Dreact-native-peek-menu%26config%3D%257B%2522esbuild%2522%253A%257B%2522external%2522%253A%255B%2522react%2522%252C%2522react-native%2522%252C%2522react-native-reanimated%2522%252C%2522react-native-worklets%2522%252C%2522react-native-gesture-handler%2522%255D%257D%257D&query=%24.size.compressedSize&label=bundle%20size)](https://bundlejs.com/?q=react-native-peek-menu&config=%7B%22esbuild%22%3A%7B%22external%22%3A%5B%22react%22%2C%22react-native%22%2C%22react-native-reanimated%22%2C%22react-native-worklets%22%2C%22react-native-gesture-handler%22%5D%7D%7D)
 
