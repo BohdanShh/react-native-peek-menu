@@ -1,6 +1,6 @@
 {
   "name": "react-native-peek-menu",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A performant, fully customizable long-press context menu for React Native.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
