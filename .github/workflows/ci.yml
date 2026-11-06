@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  # Cancel superseded PR runs, but let every push to main finish.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock', 'example/bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      - name: Format
+        run: bun run format:check
+
+      # tsc typechecks the library while it builds.
+      - name: Build
+        run: bun run build
+
+      - name: Pack
+        run: bun pm pack --destination example
+
+      # The example doesn't list the library, so this only changes the CI checkout.
+      - name: Install library into example
+        working-directory: example
+        run: bun add ./react-native-peek-menu-$(node -p "require('../package.json').version").tgz
+
+      - name: Typecheck example
+        working-directory: example
+        run: bunx tsc --noEmit
+
+      # tsc doesn't run the Worklets Babel plugin; bundling does.
+      - name: Bundle iOS
+        working-directory: example
+        run: bunx expo export --platform ios --output-dir "$RUNNER_TEMP/ios"
+
+      - name: Bundle Android
+        working-directory: example
+        run: bunx expo export --platform android --output-dir "$RUNNER_TEMP/android"
