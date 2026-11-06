@@ -23,8 +23,10 @@ cd example && bun run ios               # expo run:ios (also android); needed af
 cd example && bunx expo install <pkg>   # add a dependency to the example
 ```
 
-There are no tests, no linter and no CI. Typechecking and Prettier passing don't prove that gesture
-or animation code works, so say so when a change hasn't been run on a device.
+There are no tests and no linter. CI (`.github/workflows/ci.yml`) runs on PRs and pushes to `main`:
+Prettier, the build, packing the library into the example, the example's typecheck, and iOS and
+Android bundles (which run the Worklets Babel plugin that `tsc` skips). None of that proves that
+gesture or animation code works, so say so when a change hasn't been run on a device.
 
 ## Running library changes in the example
 
