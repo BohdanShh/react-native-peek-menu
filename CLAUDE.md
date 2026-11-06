@@ -40,7 +40,7 @@ rsync -a --delete lib/ example/node_modules/react-native-peek-menu/lib/
 rsync -a --delete src/ example/node_modules/react-native-peek-menu/src/
 ```
 
-`example/react-native-peek-menu-0.1.0.tgz` is gitignored and may be older than `src`. Don't
+`example/react-native-peek-menu-*.tgz` is gitignored and may be older than `src`. Don't
 reinstall from it without repacking.
 
 ## Architecture
