@@ -18,6 +18,7 @@ A performant, fully customizable long-press context menu for React Native.
 - Always stays on screen
 - Fully customizable: the menu, the preview and the backdrop
 - Opens above or below the content
+- Opens on hold, tap or double tap
 - RTL support
 - Portrait and landscape support
 
@@ -51,7 +52,7 @@ npm install react-native-peek-menu
 
 ## Quick start
 
-Wrap your app in `PeekMenuProvider`, then wrap anything you want to hold in `PeekMenu`.
+Wrap your app in `PeekMenuProvider`, then wrap anything that should open a menu in `PeekMenu`.
 
 ```tsx
 import { Text, View } from 'react-native';
@@ -317,13 +318,14 @@ A `PeekMenu` needs `items`, `renderMenu`, or both.
 
 | Prop           | Type                                        | Default    | Description                                                                                             |
 | -------------- | ------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------- |
-| `children`     | `ReactNode`                                 | required   | The content that opens the menu when held.                                                              |
+| `children`     | `ReactNode`                                 | required   | The content that opens the menu, held by default.                                                       |
 | `items`        | `PeekMenuItem[]`                            | `[]`       | The rows, read when the menu opens. An empty list stops it from opening, unless there's a `renderMenu`. |
 | `renderMenu`   | `(props: PeekMenuRenderProps) => ReactNode` |            | Renders this menu instead of the default list.                                                          |
 | `preview`      | `ReactNode`                                 |            | Shown instead of the copy of `children`.                                                                |
 | `placement`    | `'top' \| 'bottom'`                         | `'bottom'` | The side of the content the menu opens on.                                                              |
-| `holdDuration` | `number`                                    | `300`      | How long to hold, in milliseconds.                                                                      |
-| `disabled`     | `boolean`                                   | `false`    | Stops holding from opening the menu.                                                                    |
+| `activateOn`   | `'hold' \| 'tap' \| 'double-tap'`           | `'hold'`   | How the content opens the menu. With a tap, the content shouldn't handle presses itself.                |
+| `holdDuration` | `number`                                    | `300`      | How long to hold, in milliseconds. Only used with `activateOn` set to `'hold'`.                         |
+| `disabled`     | `boolean`                                   | `false`    | Stops the content from opening the menu.                                                                |
 | `style`        | `StyleProp<ViewStyle>`                      |            | Layout of the wrapper, like `margin` or `alignSelf`.                                                    |
 | `onOpen`       | `() => void`                                |            | Called when the menu starts to open.                                                                    |
 | `onClose`      | `() => void`                                |            | Called once the menu has finished closing.                                                              |

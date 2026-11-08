@@ -32,6 +32,9 @@ export type PeekMenuItem = {
 /** The side of the content the menu opens on. */
 export type PeekMenuPlacement = 'top' | 'bottom';
 
+/** How the content opens the menu. */
+export type PeekMenuActivation = 'hold' | 'tap' | 'double-tap';
+
 /** What `renderBackdrop` receives. */
 export type PeekMenuBackdropProps = {
   /** Goes from 0 when closed to 1 when open. The open spring can pass 1 slightly. */

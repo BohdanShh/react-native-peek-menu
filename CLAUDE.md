@@ -54,8 +54,10 @@ through. Each `PeekMenu` reaches the provider through the context from
 
 Opening:
 
-1. `useHold` runs the long-press gesture. It shrinks the content to `HOLD_SCALE` while it's held, and
-   activation crosses to JS with `scheduleOnRN`.
+1. `activateOn` picks the trigger. With `'hold'`, `useHold` runs the long-press gesture, shrinks the
+   content to `HOLD_SCALE` while it's held, and crosses to JS with `scheduleOnRN`. With `'tap'` or
+   `'double-tap'`, a `Pressable` wraps the content instead (two presses within `DOUBLE_TAP_DELAY`
+   for a double tap), so a scrolling list cancels it like any other button.
 2. `PeekMenu` measures itself in window coordinates and calls `open` with its items, its rect, its
    `renderMenu` and the content to show (`preview ?? children`). These are captured at that moment
    and don't update while the menu is open. The scale sits on an inner view so it doesn't distort
@@ -76,7 +78,8 @@ Opening:
 
 - Opening waits two UI frames (`scheduleOnUI` plus two `requestAnimationFrame`s), because mounting
   keeps the main thread busy and a spring started on the first frame would skip ahead.
-- The copy starts at `HOLD_SCALE` and springs to 1, continuing from the held original.
+- After a hold, the copy starts at `HOLD_SCALE` and springs to 1, continuing from the held
+  original. After a tap it starts at 1 and doesn't scale.
 - The placement is applied in the animated styles, so measuring doesn't cost a second render.
 - The overlay ignores touches until `progress > 0`, so a tap can't close a menu before it opens.
 - A vertical pan on the overlay drags the content and the menu within the drag range, with decay.

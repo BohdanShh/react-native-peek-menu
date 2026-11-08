@@ -16,6 +16,7 @@ import { useSharedValue, type SharedValue } from 'react-native-reanimated';
 import { PeekMenuOverlay } from './PeekMenuOverlay';
 import { BACKDROP_COLOR } from '../constants';
 import type {
+  PeekMenuActivation,
   PeekMenuBackdropProps,
   PeekMenuInsets,
   PeekMenuItem,
@@ -31,6 +32,7 @@ type PeekMenuRequest = {
   content: ReactNode;
   renderMenu?: (props: PeekMenuRenderProps) => ReactNode;
   placement: PeekMenuPlacement;
+  activateOn: PeekMenuActivation;
   onOpen?: () => void;
   onClose?: () => void;
 };

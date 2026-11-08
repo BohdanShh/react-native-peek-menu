@@ -12,6 +12,7 @@ export const HOLD_DURATION = 300;
 export const HOLD_DELAY_RATIO = 0.4;
 export const HOLD_SCALE = 0.97;
 export const RELEASE_DURATION = 150;
+export const DOUBLE_TAP_DELAY = 300;
 
 export const MENU_START_SCALE = 0.8;
 export const MENU_START_OFFSET = 12;
