@@ -1,12 +1,21 @@
-import { useId, type ReactNode } from 'react';
-import type { StyleProp, View, ViewStyle } from 'react-native';
+import { useId, useRef, type ComponentProps, type ReactNode } from 'react';
+import { Pressable, type StyleProp, type View, type ViewStyle } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
-import Animated, { useAnimatedRef, useAnimatedStyle } from 'react-native-reanimated';
+import Animated, {
+  useAnimatedRef,
+  useAnimatedStyle,
+  type AnimatedRef,
+} from 'react-native-reanimated';
 
 import { usePeekMenu } from './PeekMenuProvider';
-import { HOLD_DURATION } from '../constants';
+import { DOUBLE_TAP_DELAY, HOLD_DURATION } from '../constants';
 import { useHold } from '../hooks/useHold';
-import type { PeekMenuItem, PeekMenuPlacement, PeekMenuRenderProps } from '../types';
+import type {
+  PeekMenuActivation,
+  PeekMenuItem,
+  PeekMenuPlacement,
+  PeekMenuRenderProps,
+} from '../types';
 
 type PeekMenuContent =
   | {
@@ -33,9 +42,9 @@ type PeekMenuContent =
 
 export type PeekMenuProps = PeekMenuContent & {
   /**
-   * The content that opens the menu when held. It's rendered again above the screen while the menu
-   * is open, so it loses its local state and any context below `PeekMenuProvider`, and hooks that
-   * require such a context throw when the menu opens. Use `preview` when that matters.
+   * The content that opens the menu, held by default. It's rendered again above the screen while
+   * the menu is open, so it loses its local state and any context below `PeekMenuProvider`, and
+   * hooks that require such a context throw when the menu opens. Use `preview` when that matters.
    */
   children: ReactNode;
   /**
@@ -55,13 +64,21 @@ export type PeekMenuProps = PeekMenuContent & {
    */
   placement?: PeekMenuPlacement;
   /**
-   * How long the content has to be held to open the menu, in milliseconds.
+   * How the content opens the menu: held, tapped or tapped twice. With `'tap'` or `'double-tap'`,
+   * the content shouldn't handle presses itself.
+   *
+   * @default 'hold'
+   */
+  activateOn?: PeekMenuActivation;
+  /**
+   * How long the content has to be held to open the menu, in milliseconds. Only used with
+   * `activateOn` set to `'hold'`.
    *
    * @default 300
    */
   holdDuration?: number;
   /**
-   * Stops holding from opening the menu.
+   * Stops the content from opening the menu.
    *
    * @default false
    */
@@ -78,7 +95,8 @@ export type PeekMenuProps = PeekMenuContent & {
 };
 
 /**
- * Opens a context menu when its children are held. Needs a `PeekMenuProvider` above it.
+ * Opens a context menu when its children are held, or tapped with `activateOn`. Needs a
+ * `PeekMenuProvider` above it.
  *
  * @example
  * <PeekMenu items={[{ title: 'Copy', onPress: copy }]}>
@@ -90,6 +108,7 @@ export function PeekMenu({
   children,
   preview,
   placement = 'bottom',
+  activateOn = 'hold',
   holdDuration = HOLD_DURATION,
   disabled = false,
   style,
@@ -101,36 +120,106 @@ export function PeekMenu({
   const id = useId();
   const ref = useAnimatedRef<View>();
   const isEmpty = items.length === 0 && !renderMenu && !hasRenderMenu;
+  const isDisabled = disabled || isEmpty;
 
-  const { gesture, animatedStyle } = useHold({
-    duration: holdDuration,
-    disabled: disabled || isEmpty,
-    onActivate: () => {
-      ref.current?.measureInWindow((x, y, measuredWidth, height) => {
-        open({
-          id,
-          items,
-          rect: { x, y, width: measuredWidth, height },
-          content: preview ?? children,
-          renderMenu,
-          placement,
-          onOpen,
-          onClose,
-        });
+  const openMenu = () => {
+    ref.current?.measureInWindow((x, y, measuredWidth, height) => {
+      open({
+        id,
+        items,
+        rect: { x, y, width: measuredWidth, height },
+        content: preview ?? children,
+        renderMenu,
+        placement,
+        activateOn,
+        onOpen,
+        onClose,
       });
-    },
-  });
+    });
+  };
 
   const originalStyle = useAnimatedStyle(() => ({
     opacity: activeId.get() === id ? 0 : 1,
   }));
 
+  const triggerProps = {
+    viewRef: ref,
+    style: [style, originalStyle],
+    disabled: isDisabled,
+    onActivate: openMenu,
+  };
+
+  return activateOn === 'hold' ? (
+    <HoldTrigger {...triggerProps} duration={holdDuration}>
+      {children}
+    </HoldTrigger>
+  ) : (
+    <PressTrigger {...triggerProps} isDoubleTap={activateOn === 'double-tap'}>
+      {children}
+    </PressTrigger>
+  );
+}
+
+type TriggerProps = {
+  viewRef: AnimatedRef<View>;
+  style: ComponentProps<typeof Animated.View>['style'];
+  disabled: boolean;
+  onActivate: () => void;
+  children: ReactNode;
+};
+
+function HoldTrigger({
+  viewRef,
+  style,
+  duration,
+  disabled,
+  onActivate,
+  children,
+}: TriggerProps & { duration: number }) {
+  const { gesture, animatedStyle } = useHold({ duration, disabled, onActivate });
+
   return (
     <GestureDetector gesture={gesture}>
-      {/* The scale stays on an inner view so it doesn't skew the measured rect. */}
-      <Animated.View ref={ref} collapsable={false} style={[style, originalStyle]}>
+      <Animated.View ref={viewRef} collapsable={false} style={style}>
+        {/* The scale stays on an inner view so it doesn't skew the measured rect. */}
         <Animated.View style={animatedStyle}>{children}</Animated.View>
       </Animated.View>
     </GestureDetector>
+  );
+}
+
+function PressTrigger({
+  viewRef,
+  style,
+  isDoubleTap,
+  disabled,
+  onActivate,
+  children,
+}: TriggerProps & { isDoubleTap: boolean }) {
+  const lastPressTime = useRef(0);
+
+  const handlePress = () => {
+    const now = Date.now();
+
+    if (!isDoubleTap || now - lastPressTime.current < DOUBLE_TAP_DELAY) {
+      lastPressTime.current = 0;
+      onActivate();
+    } else {
+      lastPressTime.current = now;
+    }
+  };
+
+  return (
+    <Animated.View ref={viewRef} collapsable={false} style={style}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityActions={[{ name: 'activate' }]}
+        onAccessibilityAction={disabled ? undefined : onActivate}
+        disabled={disabled}
+        onPress={handlePress}
+      >
+        {children}
+      </Pressable>
+    </Animated.View>
   );
 }

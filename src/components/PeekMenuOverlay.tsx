@@ -56,6 +56,7 @@ export function PeekMenuOverlay({
   const animation = useMenuAnimation({
     id: menu.id,
     activeId,
+    isHeld: menu.activateOn === 'hold',
     onClosed: () => {
       onClosed();
       menu.onClose?.();

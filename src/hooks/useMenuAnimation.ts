@@ -17,6 +17,7 @@ import { CLOSE_TIMING, HOLD_SCALE, MENU_START_SCALE, OPEN_SPRING } from '../cons
 type MenuAnimationConfig = {
   id: string;
   activeId: SharedValue<string | null>;
+  isHeld: boolean;
   onClosed: () => void;
 };
 
@@ -38,9 +39,9 @@ const INITIAL_PLACEMENT: MenuPlacement = {
   transformOrigin: 'top left',
 };
 
-export function useMenuAnimation({ id, activeId, onClosed }: MenuAnimationConfig) {
+export function useMenuAnimation({ id, activeId, isHeld, onClosed }: MenuAnimationConfig) {
   const progress = useSharedValue(0);
-  const scale = useSharedValue(HOLD_SCALE);
+  const scale = useSharedValue(isHeld ? HOLD_SCALE : 1);
   const scroll = useSharedValue(0);
   const placement = useSharedValue(INITIAL_PLACEMENT);
   const isClosing = useRef(false);
