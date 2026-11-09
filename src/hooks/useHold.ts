@@ -1,8 +1,8 @@
-import { useLongPressGesture } from 'react-native-gesture-handler';
+import { usePanGesture } from 'react-native-gesture-handler';
 import { useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
-import { HOLD_DELAY_RATIO, HOLD_SCALE, RELEASE_DURATION } from '../constants';
+import { HOLD_DELAY_RATIO, HOLD_MAX_DISTANCE, HOLD_SCALE, RELEASE_DURATION } from '../constants';
 
 type HoldConfig = {
   duration: number;
@@ -13,9 +13,11 @@ type HoldConfig = {
 export function useHold({ duration, disabled, onActivate }: HoldConfig) {
   const scale = useSharedValue(1);
 
-  const gesture = useLongPressGesture({
+  const gesture = usePanGesture({
     enabled: !disabled,
-    minDuration: duration,
+    activateAfterLongPress: duration,
+    failOffsetX: [-HOLD_MAX_DISTANCE, HOLD_MAX_DISTANCE],
+    failOffsetY: [-HOLD_MAX_DISTANCE, HOLD_MAX_DISTANCE],
     onBegin: () => {
       'worklet';
 
