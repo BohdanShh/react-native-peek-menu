@@ -54,10 +54,14 @@ through. Each `PeekMenu` reaches the provider through the context from
 
 Opening:
 
-1. `activateOn` picks the trigger. With `'hold'`, `useHold` runs the long-press gesture, shrinks the
-   content to `HOLD_SCALE` while it's held, and crosses to JS with `scheduleOnRN`. With `'tap'` or
-   `'double-tap'`, a `Pressable` wraps the content instead (two presses within `DOUBLE_TAP_DELAY`
-   for a double tap), so a scrolling list cancels it like any other button.
+1. `activateOn` picks the trigger. With `'hold'`, `useHold` runs a pan gesture that activates after
+   the hold (`activateAfterLongPress`) and fails past `HOLD_MAX_DISTANCE`, shrinks the content to
+   `HOLD_SCALE` while it's held, and crosses to JS with `scheduleOnRN`. It's a pan and not a long
+   press because Gesture Handler's buttons (`Pressable`, `RectButton`) only yield to continuous
+   gestures: with a long press, a button inside the content takes the touch and the menu never
+   opens. With `'tap'` or `'double-tap'`, a `Pressable` wraps the content instead (two presses
+   within `DOUBLE_TAP_DELAY` for a double tap), so a scrolling list cancels it like any other
+   button.
 2. `PeekMenu` measures itself in window coordinates and calls `open` with its items, its rect, its
    `renderMenu` and the content to show (`preview ?? children`). These are captured at that moment
    and don't update while the menu is open. The scale sits on an inner view so it doesn't distort
