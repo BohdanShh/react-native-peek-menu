@@ -8,7 +8,7 @@ import {
   type LayoutChangeEvent,
 } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
-import Animated, { type SharedValue } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 
 import { PeekMenuList } from './PeekMenuList';
 import type { ActivePeekMenu } from './PeekMenuProvider';
@@ -30,7 +30,6 @@ import {
 
 type Props = {
   menu: ActivePeekMenu;
-  activeId: SharedValue<string | null>;
   safeAreaInsets: PeekMenuInsets;
   isDark: boolean;
   backdropColor: string;
@@ -41,7 +40,6 @@ type Props = {
 
 export function PeekMenuOverlay({
   menu,
-  activeId,
   safeAreaInsets,
   isDark,
   backdropColor,
@@ -56,8 +54,8 @@ export function PeekMenuOverlay({
   const isCovered = rect.y < clipTop || rect.y + rect.height > root.height - clipBottom;
 
   const animation = useMenuAnimation({
-    id: menu.id,
-    activeId,
+    originalOffset: menu.originalOffset,
+    keepsOriginal: isCovered,
     isHeld: menu.activateOn === 'hold',
     onClosed: () => {
       onClosed();
@@ -99,7 +97,6 @@ export function PeekMenuOverlay({
       ...(fits
         ? clippedPlacement
         : getMenuPlacement(rect, height, root.height, insets, menu.placement)),
-      isOverflowing: !fits,
       ...getMenuPosition(rect, width, root.width, insets, menu.placement),
     });
   };
