@@ -31,18 +31,16 @@ gesture or animation code works, so say so when a change hasn't been run on a de
 
 ## Running library changes in the example
 
-`example/` is a standalone Expo app (a chat that uses the default menu). It doesn't list the library
-in its `package.json` and has no Metro or tsconfig link to `src`. It reads a plain folder at
-`example/node_modules/react-native-peek-menu`, so refresh that folder after every library change:
+`example/` is a standalone Expo app (a chat that uses the default menu) that runs the library from
+`src`, like the `create-react-native-library` template: `example/metro.config.js` uses
+`react-native-monorepo-config` to watch the root, resolve `react-native-peek-menu` through the
+`react-native-peek-menu-source` export condition in the root `package.json`, and block the root's
+copies of the peer dependencies so only the example's load. `example/tsconfig.json` maps the import
+to `../src/index`. Changes in `src` reach the app with Fast Refresh; there's no build or copy step.
 
-```sh
-bun run build
-rsync -a --delete lib/ example/node_modules/react-native-peek-menu/lib/
-rsync -a --delete src/ example/node_modules/react-native-peek-menu/src/
-```
-
-`example/react-native-peek-menu-*.tgz` is gitignored and may be older than `src`. Don't
-reinstall from it without repacking.
+The example doesn't list the library in its `package.json`. Don't put a copy at
+`example/node_modules/react-native-peek-menu`: Metro would resolve it before `src`. CI still packs
+the library and installs the tarball there, which only changes the CI checkout.
 
 ## Architecture
 
