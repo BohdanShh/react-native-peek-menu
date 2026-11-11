@@ -41,6 +41,9 @@ jobs:
       - name: Format
         run: bun run format:check
 
+      - name: Lint
+        run: bun run lint
+
       # tsc typechecks the library while it builds.
       - name: Build
         run: bun run build

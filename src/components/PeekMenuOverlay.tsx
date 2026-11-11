@@ -127,6 +127,7 @@ export function PeekMenuOverlay({
       backSubscription.remove();
       dimensionsSubscription.remove();
     };
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- The overlay mounts once per menu.
   }, []);
 
   return (

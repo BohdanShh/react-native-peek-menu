@@ -17,14 +17,15 @@ Bun is the package manager, both in the root and in `example/`.
 bun run build          # rm -rf lib, then tsc from src/ to lib/
 bun run format         # prettier --write .
 bun run format:check   # prettier --check .
+bun run lint           # oxlint over src/ and example/ (.oxlintrc.json)
 bunx tsc --noEmit      # typecheck the library
 cd example && bunx tsc --noEmit         # typecheck the example
 cd example && bun run ios               # expo run:ios (also android); needed after native dep changes
 cd example && bunx expo install <pkg>   # add a dependency to the example
 ```
 
-There are no tests and no linter. CI (`.github/workflows/ci.yml`) runs on PRs and pushes to `main`:
-Prettier, the build, packing the library into the example, the example's typecheck, and iOS and
+There are no tests. CI (`.github/workflows/ci.yml`) runs on PRs and pushes to `main`: Prettier,
+oxlint, the build, packing the library into the example, the example's typecheck, and iOS and
 Android bundles (which run the Worklets Babel plugin that `tsc` skips). None of that proves that
 gesture or animation code works, so say so when a change hasn't been run on a device.
 
