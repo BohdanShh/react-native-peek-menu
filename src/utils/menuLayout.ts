@@ -7,19 +7,40 @@ import {
   SCREEN_PADDING_HORIZONTAL,
   SCREEN_PADDING_TOP,
 } from '../constants';
-import type { PeekMenuInsets, PeekMenuPlacement, PeekMenuRect } from '../types';
+import type { PeekMenuClipInsets, PeekMenuInsets, PeekMenuPlacement, PeekMenuRect } from '../types';
 
-// In RTL, React Native measures `left` from the right edge, but measurements stay physical.
+/**
+ * The `left` style for a box at physical `x`. In RTL, React Native measures `left` from the right
+ * edge, but measurements stay physical.
+ */
 export function getStyleLeft(x: number, width: number, rootWidth: number) {
   const { isRTL, doLeftAndRightSwapInRTL } = I18nManager.getConstants();
 
   return isRTL && doLeftAndRightSwapInRTL ? rootWidth - x - width : x;
 }
 
+/** The space the content and the menu keep clear of: the safe area, the keyboard and `clipInsets`. */
+export function getMenuInsets(
+  safeAreaInsets: PeekMenuInsets,
+  keyboardOverlap: number,
+  clipInsets: PeekMenuClipInsets = {},
+) {
+  return {
+    ...safeAreaInsets,
+    top: Math.max(safeAreaInsets.top, clipInsets.top ?? 0),
+    bottom: Math.max(safeAreaInsets.bottom, keyboardOverlap, clipInsets.bottom ?? 0),
+  };
+}
+
+/** The widest the menu can be and still keep clear of the sides of the screen. */
 export function getMenuMaxWidth(rootWidth: number, insets: PeekMenuInsets) {
   return rootWidth - insets.left - insets.right - SCREEN_PADDING_HORIZONTAL * 2;
 }
 
+/**
+ * Where the menu sits across the screen: lined up with the content's nearer side, kept clear of the
+ * sides of the screen, and growing from the corner next to the content.
+ */
 export function getMenuPosition(
   rect: PeekMenuRect,
   menuWidth: number,

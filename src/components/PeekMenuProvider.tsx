@@ -18,6 +18,7 @@ import { BACKDROP_COLOR } from '../constants';
 import type {
   PeekMenuActivation,
   PeekMenuBackdropProps,
+  PeekMenuClipInsets,
   PeekMenuInsets,
   PeekMenuItem,
   PeekMenuPlacement,
@@ -33,6 +34,7 @@ type PeekMenuRequest = {
   renderMenu?: (props: PeekMenuRenderProps) => ReactNode;
   placement: PeekMenuPlacement;
   activateOn: PeekMenuActivation;
+  clipInsets?: PeekMenuClipInsets;
   onOpen?: () => void;
   onClose?: () => void;
 };

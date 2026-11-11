@@ -323,6 +323,7 @@ A `PeekMenu` needs `items`, `renderMenu`, or both.
 | `renderMenu`   | `(props: PeekMenuRenderProps) => ReactNode` |            | Renders this menu instead of the default list.                                                          |
 | `preview`      | `ReactNode`                                 |            | Shown instead of the copy of `children`.                                                                |
 | `placement`    | `'top' \| 'bottom'`                         | `'bottom'` | The side of the content the menu opens on.                                                              |
+| `clipInsets`   | `{ top?: number; bottom?: number }`         |            | How much of the top and bottom is covered by something opaque, like a header or an input bar.           |
 | `activateOn`   | `'hold' \| 'tap' \| 'double-tap'`           | `'hold'`   | How the content opens the menu. With a tap, the content shouldn't handle presses itself.                |
 | `holdDuration` | `number`                                    | `300`      | How long to hold, in milliseconds. Only used with `activateOn` set to `'hold'`.                         |
 | `disabled`     | `boolean`                                   | `false`    | Stops the content from opening the menu.                                                                |

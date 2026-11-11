@@ -17,6 +17,7 @@ export const DOUBLE_TAP_DELAY = 300;
 
 export const MENU_START_SCALE = 0.8;
 export const MENU_START_OFFSET = 12;
+export const UNCOVERED_FADE = [0.15, 0.5];
 
 export const OPEN_SPRING: WithSpringConfig = { duration: 300, dampingRatio: 0.82 };
 export const CLOSE_TIMING: WithTimingConfig = { duration: 160, easing: Easing.out(Easing.quad) };

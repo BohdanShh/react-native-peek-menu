@@ -12,6 +12,7 @@ import { DOUBLE_TAP_DELAY, HOLD_DURATION } from '../constants';
 import { useHold } from '../hooks/useHold';
 import type {
   PeekMenuActivation,
+  PeekMenuClipInsets,
   PeekMenuItem,
   PeekMenuPlacement,
   PeekMenuRenderProps,
@@ -64,6 +65,16 @@ export type PeekMenuProps = PeekMenuContent & {
    */
   placement?: PeekMenuPlacement;
   /**
+   * How much of the top and bottom of the provider's area is covered by something opaque, like a
+   * header or an input bar. The content and the menu keep clear of it when they fit; otherwise they
+   * use the whole safe area. Content partly hidden there opens and closes from what was visible
+   * instead of jumping over it.
+   *
+   * @example
+   * clipInsets={{ top: headerHeight, bottom: inputBarHeight }}
+   */
+  clipInsets?: PeekMenuClipInsets;
+  /**
    * How the content opens the menu: held, tapped or tapped twice. With `'tap'` or `'double-tap'`,
    * the content shouldn't handle presses itself.
    *
@@ -108,6 +119,7 @@ export function PeekMenu({
   children,
   preview,
   placement = 'bottom',
+  clipInsets,
   activateOn = 'hold',
   holdDuration = HOLD_DURATION,
   disabled = false,
@@ -131,6 +143,7 @@ export function PeekMenu({
         content: preview ?? children,
         renderMenu,
         placement,
+        clipInsets,
         activateOn,
         onOpen,
         onClose,
