@@ -83,7 +83,7 @@ export default function App() {
 
 Pass the safe area so the menu keeps clear of the notch and the home indicator.
 
-If a header, an input bar or a tab bar covers the top or bottom of the screen, pass how much of it they cover as `clipInsets`. The menu opens between them, and content partly hidden under them opens and closes smoothly.
+If a header, an input bar or a tab bar covers the top or bottom of the screen, even a translucent one, pass how much of it they cover as `clipInsets`. The menu opens between them, and content partly hidden under them opens and closes smoothly.
 
 ```tsx
 import { PeekMenu, PeekMenuProvider } from 'react-native-peek-menu';
@@ -303,20 +303,20 @@ function ChatMessage({ message }: { message: Message }) {
 
 A `PeekMenu` needs `items`, `renderMenu`, or both.
 
-| Prop           | Type                                        | Default    | Description                                                                                             |
-| -------------- | ------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------- |
-| `children`     | `ReactNode`                                 | required   | The content that opens the menu, held by default.                                                       |
-| `items`        | `PeekMenuItem[]`                            | `[]`       | The rows, read when the menu opens. An empty list stops it from opening, unless there's a `renderMenu`. |
-| `renderMenu`   | `(props: PeekMenuRenderProps) => ReactNode` |            | Renders this menu instead of the default list.                                                          |
-| `preview`      | `ReactNode`                                 |            | Shown instead of the copy of `children`.                                                                |
-| `placement`    | `'top' \| 'bottom'`                         | `'bottom'` | The side of the content the menu opens on.                                                              |
-| `clipInsets`   | `{ top?: number; bottom?: number }`         |            | How much of the top and bottom is covered by something opaque, like a header or an input bar.           |
-| `activateOn`   | `'hold' \| 'tap' \| 'double-tap'`           | `'hold'`   | How the content opens the menu. With a tap, the content shouldn't handle presses itself.                |
-| `holdDuration` | `number`                                    | `300`      | How long to hold, in milliseconds. Only used with `activateOn` set to `'hold'`.                         |
-| `disabled`     | `boolean`                                   | `false`    | Stops the content from opening the menu.                                                                |
-| `style`        | `StyleProp<ViewStyle>`                      |            | Layout of the wrapper, like `margin` or `alignSelf`.                                                    |
-| `onOpen`       | `() => void`                                |            | Called when the menu starts to open.                                                                    |
-| `onClose`      | `() => void`                                |            | Called once the menu has finished closing.                                                              |
+| Prop           | Type                                        | Default    | Description                                                                                                   |
+| -------------- | ------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------- |
+| `children`     | `ReactNode`                                 | required   | The content that opens the menu, held by default.                                                             |
+| `items`        | `PeekMenuItem[]`                            | `[]`       | The rows, read when the menu opens. An empty list stops it from opening, unless there's a `renderMenu`.       |
+| `renderMenu`   | `(props: PeekMenuRenderProps) => ReactNode` |            | Renders this menu instead of the default list.                                                                |
+| `preview`      | `ReactNode`                                 |            | Shown instead of the copy of `children`.                                                                      |
+| `placement`    | `'top' \| 'bottom'`                         | `'bottom'` | The side of the content the menu opens on.                                                                    |
+| `clipInsets`   | `{ top?: number; bottom?: number }`         |            | How much of the top and bottom is covered by something, opaque or translucent, like a header or an input bar. |
+| `activateOn`   | `'hold' \| 'tap' \| 'double-tap'`           | `'hold'`   | How the content opens the menu. With a tap, the content shouldn't handle presses itself.                      |
+| `holdDuration` | `number`                                    | `300`      | How long to hold, in milliseconds. Only used with `activateOn` set to `'hold'`.                               |
+| `disabled`     | `boolean`                                   | `false`    | Stops the content from opening the menu.                                                                      |
+| `style`        | `StyleProp<ViewStyle>`                      |            | Layout of the wrapper, like `margin` or `alignSelf`.                                                          |
+| `onOpen`       | `() => void`                                |            | Called when the menu starts to open.                                                                          |
+| `onClose`      | `() => void`                                |            | Called once the menu has finished closing.                                                                    |
 
 ### `PeekMenuItem`
 

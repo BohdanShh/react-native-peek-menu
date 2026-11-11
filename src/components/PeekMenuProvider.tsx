@@ -11,7 +11,7 @@ import {
 } from 'react';
 import { Keyboard, StyleSheet, useColorScheme, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useSharedValue, type SharedValue } from 'react-native-reanimated';
+import type { SharedValue } from 'react-native-reanimated';
 
 import { PeekMenuOverlay } from './PeekMenuOverlay';
 import { BACKDROP_COLOR } from '../constants';
@@ -27,7 +27,6 @@ import type {
 } from '../types';
 
 type PeekMenuRequest = {
-  id: string;
   items: PeekMenuItem[];
   rect: PeekMenuRect;
   content: ReactNode;
@@ -35,6 +34,7 @@ type PeekMenuRequest = {
   placement: PeekMenuPlacement;
   activateOn: PeekMenuActivation;
   clipInsets?: PeekMenuClipInsets;
+  originalOffset: SharedValue<number | null>;
   onOpen?: () => void;
   onClose?: () => void;
 };
@@ -47,7 +47,6 @@ export type ActivePeekMenu = PeekMenuRequest & {
 
 type PeekMenuControls = {
   open: (request: PeekMenuRequest) => void;
-  activeId: SharedValue<string | null>;
   hasRenderMenu: boolean;
 };
 
@@ -118,7 +117,6 @@ export function PeekMenuProvider({
   overlayContainer: OverlayContainer,
 }: PeekMenuProviderProps) {
   const [activeMenu, setActiveMenu] = useState<ActivePeekMenu | null>(null);
-  const activeId = useSharedValue<string | null>(null);
   const rootRef = useRef<ComponentRef<typeof View>>(null);
   const hostRef = useRef<ComponentRef<typeof View>>(null);
   const systemColorScheme = useColorScheme();
@@ -147,15 +145,11 @@ export function PeekMenuProvider({
   const close = useCallback(() => setActiveMenu(null), []);
 
   const hasRenderMenu = renderMenu !== undefined;
-  const controls = useMemo(
-    () => ({ open, activeId, hasRenderMenu }),
-    [open, activeId, hasRenderMenu],
-  );
+  const controls = useMemo(() => ({ open, hasRenderMenu }), [open, hasRenderMenu]);
 
   const overlay = activeMenu && (
     <PeekMenuOverlay
       menu={activeMenu}
-      activeId={activeId}
       safeAreaInsets={safeAreaInsets}
       isDark={isDark}
       backdropColor={backdropColor}

@@ -1,9 +1,10 @@
-import { useId, useRef, type ComponentProps, type ReactNode } from 'react';
+import { useRef, type ComponentProps, type ReactNode } from 'react';
 import { Pressable, type StyleProp, type View, type ViewStyle } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useAnimatedRef,
   useAnimatedStyle,
+  useSharedValue,
   type AnimatedRef,
 } from 'react-native-reanimated';
 
@@ -65,10 +66,10 @@ export type PeekMenuProps = PeekMenuContent & {
    */
   placement?: PeekMenuPlacement;
   /**
-   * How much of the top and bottom of the provider's area is covered by something opaque, like a
-   * header or an input bar. The content and the menu keep clear of it when they fit; otherwise they
-   * use the whole safe area. Content partly hidden there opens and closes from what was visible
-   * instead of jumping over it.
+   * How much of the top and bottom of the provider's area is covered by something, opaque or
+   * translucent, like a header or an input bar. The content and the menu keep clear of it when they
+   * fit; otherwise they use the whole safe area. Content partly hidden there opens and closes from
+   * under it instead of jumping over it.
    *
    * @example
    * clipInsets={{ top: headerHeight, bottom: inputBarHeight }}
@@ -128,22 +129,22 @@ export function PeekMenu({
   onOpen,
   onClose,
 }: PeekMenuProps) {
-  const { open, activeId, hasRenderMenu } = usePeekMenu();
-  const id = useId();
+  const { open, hasRenderMenu } = usePeekMenu();
   const ref = useAnimatedRef<View>();
+  const originalOffset = useSharedValue<number | null>(0);
   const isEmpty = items.length === 0 && !renderMenu && !hasRenderMenu;
   const isDisabled = disabled || isEmpty;
 
   const openMenu = () => {
     ref.current?.measureInWindow((x, y, measuredWidth, height) => {
       open({
-        id,
         items,
         rect: { x, y, width: measuredWidth, height },
         content: preview ?? children,
         renderMenu,
         placement,
         clipInsets,
+        originalOffset,
         activateOn,
         onOpen,
         onClose,
@@ -151,9 +152,14 @@ export function PeekMenu({
     });
   };
 
-  const originalStyle = useAnimatedStyle(() => ({
-    opacity: activeId.get() === id ? 0 : 1,
-  }));
+  const originalStyle = useAnimatedStyle(() => {
+    const offset = originalOffset.get();
+
+    return {
+      opacity: offset === null ? 0 : 1,
+      transform: [{ translateY: offset ?? 0 }],
+    };
+  });
 
   const triggerProps = {
     viewRef: ref,

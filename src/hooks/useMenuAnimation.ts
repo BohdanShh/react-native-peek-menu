@@ -4,6 +4,7 @@ import {
   cancelAnimation,
   clamp,
   interpolate,
+  useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
   withDecay,
@@ -22,15 +23,14 @@ import {
 } from '../constants';
 
 type MenuAnimationConfig = {
-  id: string;
-  activeId: SharedValue<string | null>;
+  originalOffset: SharedValue<number | null>;
+  keepsOriginal: boolean;
   isHeld: boolean;
   onClosed: () => void;
 };
 
 type MenuPlacement = {
   shift: number;
-  isOverflowing: boolean;
   minScroll: number;
   maxScroll: number;
   startOffset: number;
@@ -40,7 +40,6 @@ type MenuPlacement = {
 
 const INITIAL_PLACEMENT: MenuPlacement = {
   shift: 0,
-  isOverflowing: false,
   minScroll: 0,
   maxScroll: 0,
   startOffset: 0,
@@ -48,7 +47,12 @@ const INITIAL_PLACEMENT: MenuPlacement = {
   transformOrigin: 'top left',
 };
 
-export function useMenuAnimation({ id, activeId, isHeld, onClosed }: MenuAnimationConfig) {
+export function useMenuAnimation({
+  originalOffset,
+  keepsOriginal,
+  isHeld,
+  onClosed,
+}: MenuAnimationConfig) {
   const progress = useSharedValue(0);
   const scale = useSharedValue(isHeld ? HOLD_SCALE : 1);
   const scroll = useSharedValue(0);
@@ -85,7 +89,7 @@ export function useMenuAnimation({ id, activeId, isHeld, onClosed }: MenuAnimati
       return;
     }
 
-    activeId.set(id);
+    originalOffset.set(keepsOriginal ? 0 : null);
     placement.set(nextPlacement);
 
     /*
@@ -115,7 +119,7 @@ export function useMenuAnimation({ id, activeId, isHeld, onClosed }: MenuAnimati
       withTiming(0, CLOSE_TIMING, (finished) => {
         if (finished) {
           // The original has to be back before the copy on top of it goes.
-          activeId.set(null);
+          originalOffset.set(0);
           scheduleOnRN(onClosed);
         }
       }),
@@ -125,6 +129,15 @@ export function useMenuAnimation({ id, activeId, isHeld, onClosed }: MenuAnimati
       action();
     }
   };
+
+  useAnimatedReaction(
+    () => (placement.get().shift + scroll.get()) * progress.get(),
+    (offset) => {
+      if (keepsOriginal) {
+        originalOffset.set(offset);
+      }
+    },
+  );
 
   // Touches only count once the menu is on its way, so it can't close before it opens.
   const overlayStyle = useAnimatedStyle(() => ({
@@ -143,9 +156,7 @@ export function useMenuAnimation({ id, activeId, isHeld, onClosed }: MenuAnimati
   }));
 
   const uncoveredCopyStyle = useAnimatedStyle(() => ({
-    opacity: placement.get().isOverflowing
-      ? interpolate(progress.get(), UNCOVERED_FADE, [0, 1], 'clamp')
-      : 0,
+    opacity: interpolate(progress.get(), UNCOVERED_FADE, [0, 1], 'clamp'),
   }));
 
   const menuStyle = useAnimatedStyle(() => {

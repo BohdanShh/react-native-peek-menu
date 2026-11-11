@@ -33,8 +33,8 @@ export type PeekMenuItem = {
 export type PeekMenuPlacement = 'top' | 'bottom';
 
 /**
- * How much of the top and bottom of the provider's area is covered by something opaque, like a
- * header or an input bar.
+ * How much of the top and bottom of the provider's area is covered by something, opaque or
+ * translucent, like a header or an input bar.
  */
 export type PeekMenuClipInsets = {
   top?: number;
