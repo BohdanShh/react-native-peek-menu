@@ -19,10 +19,16 @@ bun run format         # prettier --write .
 bun run format:check   # prettier --check .
 bun run lint           # oxlint over src/ and example/ (.oxlintrc.json)
 bunx tsc --noEmit      # typecheck the library
+bun run types          # typecheck the library, the hook scripts and the example
 cd example && bunx tsc --noEmit         # typecheck the example
 cd example && bun run ios               # expo run:ios (also android); needed after native dep changes
 cd example && bunx expo install <pkg>   # add a dependency to the example
 ```
+
+A Husky pre-commit hook (`.husky/utils/pre-commit.ts`, run with Bun) runs `bun run types`, then
+lint-staged (`.lintstagedrc`): Prettier and `oxlint --fix` on staged files. `bun install` sets it
+up through the `prepare` script, which calls `bunx husky`: `bun pm pack` runs `prepare` without
+`node_modules/.bin` on the `PATH`, so a bare `husky` isn't found there.
 
 There are no tests. CI (`.github/workflows/ci.yml`) runs on PRs and pushes to `main`: Prettier,
 oxlint, the build, packing the library into the example, the example's typecheck, and iOS and

@@ -1,0 +1,4 @@
+{
+  "*.{json,md}": ["prettier --write"],
+  "*.{js,jsx,ts,tsx}": ["prettier --write", "oxlint --fix --max-warnings 0"]
+}
