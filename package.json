@@ -23,7 +23,7 @@
     "format:check": "prettier --check .",
     "lint": "oxlint",
     "types": "tsc --noEmit && tsc -p .husky/utils && cd example && bunx tsc --noEmit",
-    "prepare": "husky"
+    "prepare": "bunx husky"
   },
   "keywords": [
     "react-native",
