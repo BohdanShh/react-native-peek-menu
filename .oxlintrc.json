@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "react", "import"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "rules": {
+    "react/exhaustive-effect-dependencies": "off",
+    "react/react-in-jsx-scope": "off",
+    "react/style-prop-object": "off"
+  },
+  "ignorePatterns": ["lib", "example/ios", "example/android"]
+}
