@@ -6,6 +6,7 @@
   "types": "lib/index.d.ts",
   "exports": {
     ".": {
+      "react-native-peek-menu-source": "./src/index.ts",
       "types": "./lib/index.d.ts",
       "default": "./lib/index.js"
     },
