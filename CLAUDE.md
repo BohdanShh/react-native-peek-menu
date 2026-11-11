@@ -112,6 +112,16 @@ any `Dimensions` change close the menu.
   A custom `renderMenu` gets no theme.
 - A `PeekMenu` with no `items` and no `renderMenu`, its own or the provider's, is treated as
   `disabled`.
+- `clipInsets` adds to the top and bottom insets for layout when the content and the menu fit
+  within them (no drag range); otherwise layout and drag use only the safe area. When the original
+  is partly under them, the copy is rendered twice, moving together: one in a view clipped to
+  them, and one unclipped on top. When everything fits, the unclipped one stays invisible and the
+  content slides out from under those edges. When it doesn't (`isOverflowing`), it fades with
+  `progress` (`UNCOVERED_FADE`): open, the content can cover those edges; closing, what's over them
+  fades out instead of being cut, and the clipped copy matches the original at the swap. This
+  mirrors Telegram iOS's dismiss crossfade. Both copies mount up front: whether the content fits
+  depends on the menu's height, known only after layout, and a second render would delay the
+  animation.
 - RTL: `getStyleLeft` flips `left` because React Native measures `left` from the right edge in RTL,
   while measurements stay physical. Positioning code should go through it.
 

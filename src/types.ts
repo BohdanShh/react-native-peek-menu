@@ -32,6 +32,15 @@ export type PeekMenuItem = {
 /** The side of the content the menu opens on. */
 export type PeekMenuPlacement = 'top' | 'bottom';
 
+/**
+ * How much of the top and bottom of the provider's area is covered by something opaque, like a
+ * header or an input bar.
+ */
+export type PeekMenuClipInsets = {
+  top?: number;
+  bottom?: number;
+};
+
 /** How the content opens the menu. */
 export type PeekMenuActivation = 'hold' | 'tap' | 'double-tap';
 

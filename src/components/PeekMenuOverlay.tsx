@@ -4,6 +4,7 @@ import {
   Dimensions,
   Pressable,
   StyleSheet,
+  View,
   type LayoutChangeEvent,
 } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
@@ -20,6 +21,7 @@ import type {
   PeekMenuRenderProps,
 } from '../types';
 import {
+  getMenuInsets,
   getMenuMaxWidth,
   getMenuPlacement,
   getMenuPosition,
@@ -48,10 +50,10 @@ export function PeekMenuOverlay({
   onClosed,
 }: Props) {
   const { rect, root } = menu;
-  const insets = {
-    ...safeAreaInsets,
-    bottom: Math.max(safeAreaInsets.bottom, menu.keyboardOverlap),
-  };
+  const insets = getMenuInsets(safeAreaInsets, menu.keyboardOverlap);
+  const clippedInsets = getMenuInsets(safeAreaInsets, menu.keyboardOverlap, menu.clipInsets);
+  const { top: clipTop = 0, bottom: clipBottom = 0 } = menu.clipInsets ?? {};
+  const isCovered = rect.y < clipTop || rect.y + rect.height > root.height - clipBottom;
 
   const animation = useMenuAnimation({
     id: menu.id,
@@ -63,11 +65,41 @@ export function PeekMenuOverlay({
     },
   });
 
+  const renderCopy = (isUncovered = false) => (
+    <Animated.View
+      style={[
+        styles.copy,
+        {
+          left: getStyleLeft(rect.x, rect.width, root.width),
+          top: rect.y,
+          width: rect.width,
+          height: rect.height,
+        },
+        animation.copyStyle,
+        isUncovered && animation.uncoveredCopyStyle,
+      ]}
+    >
+      {menu.content}
+    </Animated.View>
+  );
+
   const handleMenuLayout = (event: LayoutChangeEvent) => {
     const { width, height } = event.nativeEvent.layout;
 
+    const clippedPlacement = getMenuPlacement(
+      rect,
+      height,
+      root.height,
+      clippedInsets,
+      menu.placement,
+    );
+    const fits = clippedPlacement.minScroll === 0 && clippedPlacement.maxScroll === 0;
+
     animation.open({
-      ...getMenuPlacement(rect, height, root.height, insets, menu.placement),
+      ...(fits
+        ? clippedPlacement
+        : getMenuPlacement(rect, height, root.height, insets, menu.placement)),
+      isOverflowing: !fits,
       ...getMenuPosition(rect, width, root.width, insets, menu.placement),
     });
   };
@@ -119,20 +151,18 @@ export function PeekMenuOverlay({
             style={StyleSheet.absoluteFill}
           />
         </Animated.View>
-        <Animated.View
-          style={[
-            styles.copy,
-            {
-              left: getStyleLeft(rect.x, rect.width, root.width),
-              top: rect.y,
-              width: rect.width,
-              height: rect.height,
-            },
-            animation.copyStyle,
-          ]}
-        >
-          {menu.content}
-        </Animated.View>
+        {isCovered ? (
+          <>
+            <View style={[styles.clip, { top: clipTop, bottom: clipBottom }]}>
+              <View style={[styles.clipContent, { top: -clipTop, height: root.height }]}>
+                {renderCopy()}
+              </View>
+            </View>
+            {renderCopy(true)}
+          </>
+        ) : (
+          renderCopy()
+        )}
         <Animated.View
           onLayout={handleMenuLayout}
           style={[
@@ -159,6 +189,18 @@ export function PeekMenuOverlay({
 }
 
 const styles = StyleSheet.create({
+  clip: {
+    position: 'absolute',
+    right: 0,
+    left: 0,
+    overflow: 'hidden',
+    pointerEvents: 'none',
+  },
+  clipContent: {
+    position: 'absolute',
+    right: 0,
+    left: 0,
+  },
   copy: {
     position: 'absolute',
     pointerEvents: 'none',

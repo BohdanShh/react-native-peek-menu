@@ -3,6 +3,7 @@ import { usePanGesture } from 'react-native-gesture-handler';
 import {
   cancelAnimation,
   clamp,
+  interpolate,
   useAnimatedStyle,
   useSharedValue,
   withDecay,
@@ -12,7 +13,13 @@ import {
 } from 'react-native-reanimated';
 import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets';
 
-import { CLOSE_TIMING, HOLD_SCALE, MENU_START_SCALE, OPEN_SPRING } from '../constants';
+import {
+  CLOSE_TIMING,
+  HOLD_SCALE,
+  MENU_START_SCALE,
+  OPEN_SPRING,
+  UNCOVERED_FADE,
+} from '../constants';
 
 type MenuAnimationConfig = {
   id: string;
@@ -23,6 +30,7 @@ type MenuAnimationConfig = {
 
 type MenuPlacement = {
   shift: number;
+  isOverflowing: boolean;
   minScroll: number;
   maxScroll: number;
   startOffset: number;
@@ -32,6 +40,7 @@ type MenuPlacement = {
 
 const INITIAL_PLACEMENT: MenuPlacement = {
   shift: 0,
+  isOverflowing: false,
   minScroll: 0,
   maxScroll: 0,
   startOffset: 0,
@@ -133,6 +142,12 @@ export function useMenuAnimation({ id, activeId, isHeld, onClosed }: MenuAnimati
     ],
   }));
 
+  const uncoveredCopyStyle = useAnimatedStyle(() => ({
+    opacity: placement.get().isOverflowing
+      ? interpolate(progress.get(), UNCOVERED_FADE, [0, 1], 'clamp')
+      : 0,
+  }));
+
   const menuStyle = useAnimatedStyle(() => {
     const value = progress.get();
     const { shift, startOffset, translateX, transformOrigin } = placement.get();
@@ -157,6 +172,7 @@ export function useMenuAnimation({ id, activeId, isHeld, onClosed }: MenuAnimati
     overlayStyle,
     backdropStyle,
     copyStyle,
+    uncoveredCopyStyle,
     menuStyle,
   };
 }
