@@ -1,6 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
+import { useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
-import { PeekMenu, PeekMenuProvider } from 'react-native-peek-menu';
+import {
+  PeekMenu,
+  PeekMenuProvider,
+  type PeekMenuClipInsets,
+  type PeekMenuItem,
+} from 'react-native-peek-menu';
 import {
   initialWindowMetrics,
   SafeAreaProvider,
@@ -13,7 +19,7 @@ type Message = {
   isOwn: boolean;
 };
 
-const ITEMS = [
+const ITEMS: PeekMenuItem[] = [
   { title: 'Reply', onPress: () => console.log('Reply') },
   { title: 'Copy', onPress: () => console.log('Copy') },
   { title: 'Edit', disabled: true, onPress: () => console.log('Edit') },
@@ -21,7 +27,9 @@ const ITEMS = [
 ];
 
 const LONG_MESSAGE =
-  'So here is everything that happened on the way to the station this morning. '.repeat(40);
+  'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. '.repeat(
+    12,
+  );
 
 const MESSAGES: Message[] = [
   { id: '1', text: 'Hey! Are you free tonight?', isOwn: false },
@@ -36,38 +44,14 @@ const MESSAGES: Message[] = [
   { id: '10', text: "I don't think they take bookings", isOwn: true },
   { id: '11', text: 'Fair enough, we will take our chances then', isOwn: false },
   { id: '12', text: 'See you there 🍜', isOwn: true },
-  { id: '13', text: 'Did you see the photos from last weekend?', isOwn: false },
-  { id: '14', text: 'Not yet, send them over', isOwn: true },
-  { id: '15', text: 'Uploading now, the signal here is terrible', isOwn: false },
-  { id: '16', text: 'No rush', isOwn: true },
-  { id: '17', text: 'Got them! The one from the lake is great', isOwn: true },
-  { id: '18', text: 'I nearly fell in trying to take it', isOwn: false },
-  { id: '19', text: 'Worth it though', isOwn: true },
-  {
-    id: '20',
-    text: 'Also, are we still on for the hike next Saturday? The forecast looks decent so far, but it might turn rainy in the afternoon, so maybe we should start earlier than we planned',
-    isOwn: false,
-  },
-  { id: '21', text: 'Sure, how early are we talking?', isOwn: true },
-  { id: '22', text: 'Eight?', isOwn: false },
-  { id: '23', text: "That's a lot earlier than I hoped", isOwn: true },
-  { id: '24', text: 'Half past eight then', isOwn: false },
-  { id: '25', text: 'Deal', isOwn: true },
-  { id: '26', text: "I'll bring snacks", isOwn: false },
-  { id: '27', text: "I'll bring the coffee", isOwn: true },
-  { id: '28', text: 'Best plan so far', isOwn: false },
-  { id: '29', text: 'Running a bit late by the way, the train got delayed', isOwn: true },
-  { id: '30', text: "No worries, I'll grab a spot in the queue", isOwn: false },
-  { id: '31', text: "You're the best", isOwn: true },
-  { id: '32', text: 'I know 😄', isOwn: false },
-  { id: '33', text: LONG_MESSAGE, isOwn: true },
-  { id: '34', text: 'Sorry, that was a long one', isOwn: true },
+  { id: '13', text: LONG_MESSAGE, isOwn: false },
+  { id: '14', text: 'Sorry, that was a long one', isOwn: false },
 ];
 
-function MessageRow({ message }: { message: Message }) {
+function MessageRow({ message, clipInsets }: { message: Message; clipInsets: PeekMenuClipInsets }) {
   return (
     <View style={[styles.row, message.isOwn && styles.ownRow]}>
-      <PeekMenu items={ITEMS}>
+      <PeekMenu items={ITEMS} clipInsets={clipInsets}>
         <View style={[styles.bubble, message.isOwn && styles.ownBubble]}>
           <Text style={styles.text}>{message.text}</Text>
         </View>
@@ -78,19 +62,42 @@ function MessageRow({ message }: { message: Message }) {
 
 function Chat() {
   const insets = useSafeAreaInsets();
+  const [clipInsets, setClipInsets] = useState({ top: 0, bottom: 0 });
 
   return (
     <PeekMenuProvider safeAreaInsets={insets}>
-      <FlatList
-        data={MESSAGES}
-        keyExtractor={(message) => message.id}
-        renderItem={({ item }) => <MessageRow message={item} />}
-        style={styles.list}
-        contentContainerStyle={[
-          styles.content,
-          { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 12 },
-        ]}
-      />
+      <View style={styles.screen}>
+        <FlatList
+          data={MESSAGES}
+          keyExtractor={(message) => message.id}
+          renderItem={({ item }) => <MessageRow message={item} clipInsets={clipInsets} />}
+          style={StyleSheet.absoluteFill}
+          contentContainerStyle={[
+            styles.content,
+            { paddingTop: clipInsets.top + 12, paddingBottom: clipInsets.bottom + 12 },
+          ]}
+        />
+        <View
+          onLayout={(event) => {
+            const top = event.nativeEvent.layout.height;
+            setClipInsets((current) => ({ ...current, top }));
+          }}
+          style={[styles.bar, styles.header, { paddingTop: insets.top + 12 }]}
+        >
+          <Text style={styles.title}>Peek Menu</Text>
+        </View>
+        <View
+          onLayout={(event) => {
+            const bottom = event.nativeEvent.layout.height;
+            setClipInsets((current) => ({ ...current, bottom }));
+          }}
+          style={[styles.bar, styles.composer, { paddingBottom: insets.bottom + 8 }]}
+        >
+          <View style={styles.input}>
+            <Text style={styles.placeholder}>Message</Text>
+          </View>
+        </View>
+      </View>
       <StatusBar style="auto" />
     </PeekMenuProvider>
   );
@@ -105,7 +112,7 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  list: {
+  screen: {
     flex: 1,
     backgroundColor: '#DCE6EE',
   },
@@ -132,5 +139,41 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 16,
     color: '#111',
+  },
+  bar: {
+    position: 'absolute',
+    right: 0,
+    left: 0,
+    paddingHorizontal: 12,
+    backgroundColor: '#F7F7F7',
+  },
+  header: {
+    top: 0,
+    paddingBottom: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#C6C6C8',
+  },
+  composer: {
+    bottom: 0,
+    paddingTop: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#C6C6C8',
+  },
+  title: {
+    fontSize: 17,
+    fontWeight: '600',
+    textAlign: 'center',
+    color: '#111',
+  },
+  input: {
+    justifyContent: 'center',
+    height: 36,
+    paddingHorizontal: 14,
+    borderRadius: 18,
+    backgroundColor: '#FFF',
+  },
+  placeholder: {
+    fontSize: 16,
+    color: '#8E8E93',
   },
 });
