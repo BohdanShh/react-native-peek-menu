@@ -79,23 +79,31 @@ export default function App() {
 
 ## Recipes
 
-### Safe area and a tab bar
+### Safe area, header and input bar
 
-Pass the safe area so the menu keeps clear of the notch and the home indicator. If the provider also covers a tab bar, add its height to `bottom`.
+Pass the safe area so the menu keeps clear of the notch and the home indicator.
+
+If a header, an input bar or a tab bar covers the top or bottom of the screen, pass how much of it they cover as `clipInsets`. The menu opens between them, and content partly hidden under them opens and closes smoothly.
 
 ```tsx
-import { PeekMenuProvider } from 'react-native-peek-menu';
+import { PeekMenu, PeekMenuProvider } from 'react-native-peek-menu';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-const TAB_BAR_HEIGHT = 60;
 
 function App() {
   const insets = useSafeAreaInsets();
 
   return (
-    <PeekMenuProvider safeAreaInsets={{ ...insets, bottom: insets.bottom + TAB_BAR_HEIGHT }}>
+    <PeekMenuProvider safeAreaInsets={insets}>
       <Chat />
     </PeekMenuProvider>
+  );
+}
+
+function ChatMessage({ message, headerHeight, inputBarHeight }: ChatMessageProps) {
+  return (
+    <PeekMenu items={items} clipInsets={{ top: headerHeight, bottom: inputBarHeight }}>
+      <Bubble message={message} />
+    </PeekMenu>
   );
 }
 ```
@@ -277,27 +285,6 @@ function ChatMessage({ message }: { message: Message }) {
 }
 ```
 
-### Haptics on open
-
-Add haptic feedback when a menu opens. Wrap `PeekMenu` once and use the wrapper across the app.
-
-```tsx
-import * as Haptics from 'expo-haptics';
-import { PeekMenu, type PeekMenuProps } from 'react-native-peek-menu';
-
-export function AppPeekMenu(props: PeekMenuProps) {
-  return (
-    <PeekMenu
-      {...props}
-      onOpen={() => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        props.onOpen?.();
-      }}
-    />
-  );
-}
-```
-
 ## API
 
 ### `PeekMenuProviderProps`
@@ -305,7 +292,7 @@ export function AppPeekMenu(props: PeekMenuProps) {
 | Prop               | Type                                          | Default                   | Description                                                                                         |
 | ------------------ | --------------------------------------------- | ------------------------- | --------------------------------------------------------------------------------------------------- |
 | `children`         | `ReactNode`                                   | required                  | The part of the app that can open menus.                                                            |
-| `safeAreaInsets`   | `PeekMenuInsets`                              | All `0`                   | Space to keep clear on each side. Add a tab bar's height here.                                      |
+| `safeAreaInsets`   | `PeekMenuInsets`                              | All `0`                   | Space to keep clear on each side.                                                                   |
 | `colorScheme`      | `'system' \| 'light' \| 'dark'`               | `'system'`                | The theme of the default menu. `'system'` follows the device.                                       |
 | `backdropColor`    | `string`                                      | `'rgba(10, 14, 20, 0.5)'` | Color of the layer behind the menu.                                                                 |
 | `renderBackdrop`   | `(props: PeekMenuBackdropProps) => ReactNode` |                           | Replaces that layer, and `backdropColor` is ignored.                                                |
