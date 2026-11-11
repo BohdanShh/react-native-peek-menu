@@ -79,7 +79,6 @@ export type PeekMenuRect = {
 
 /**
  * Space the menu and its content keep clear of on each side, on top of a small built-in padding.
- * Add the height of a tab bar here to keep the menu above it.
  */
 export type PeekMenuInsets = {
   top: number;
