@@ -54,8 +54,9 @@ the library and installs the tarball there, which only changes the CI checkout.
 `PeekMenuOverlay`, on top of them. With `overlayContainer` (like `FullWindowOverlay` on iOS), the
 overlay goes into a host view inside that component instead, with its own `GestureHandlerRootView`,
 since the container can be another window. The container stays mounted, and the host lets touches
-through. Each `PeekMenu` reaches the provider through the context from `usePeekMenu` and owns
-`originalOffset`, a shared value that moves its original by that much, or hides it while `null`.
+through. Each `PeekMenu` reaches the provider through the context from `usePeekMenu`. A row in a
+long list pays for its `PeekMenu` on every mount and render, so the original has no animated style
+of its own: the open menu hides or moves it with `setNativeProps` on its animated ref.
 
 Opening:
 
@@ -66,9 +67,10 @@ Opening:
    gestures: with a long press, a button inside the content takes the touch and the menu never
    opens. With `'tap'` or `'double-tap'`, a `Pressable` wraps the content instead (two presses
    within `DOUBLE_TAP_DELAY` for a double tap), so a scrolling list cancels it like any other
-   button.
+   button. The pan's config is memoized on `duration` and `disabled`, with `onActivate` read through
+   a ref, since Gesture Handler sends a config with a new identity to the native handler again.
 2. `PeekMenu` measures itself in window coordinates and calls `open` with its items, its rect, its
-   `renderMenu`, the content to show (`preview ?? children`) and `originalOffset`. These are
+   `renderMenu`, the content to show (`preview ?? children`) and its animated ref. These are
    captured at that moment and don't update while the menu is open. The scale sits on an inner view
    so it doesn't distort the measurement.
 3. The provider measures where the overlay draws (its root, or the host inside `overlayContainer`),
@@ -81,7 +83,7 @@ Opening:
 5. With that size, `getMenuPlacement` and `getMenuPosition` in `src/utils/menuLayout.ts` compute the
    vertical shift, the drag range (`minScroll`/`maxScroll`, for when the content and the menu can't
    both fit), the horizontal `translateX` and the transform origin. `animation.open` stores them in
-   a shared value and sets `originalOffset` to `null`, which hides the original under the copy
+   a shared value and hides the original under the copy with `setNativeProps` on the UI thread
    (unless it's partly under `clipInsets`, see below).
 
 `useMenuAnimation` owns all the motion, driven by one `progress` value from 0 to 1:
@@ -94,8 +96,8 @@ Opening:
 - The overlay ignores touches until `progress > 0`, so a tap can't close a menu before it opens.
 - A vertical pan on the overlay drags the content and the menu within the drag range, with decay.
 
-Closing runs `progress` back to 0, sets `originalOffset` back to 0 on the UI thread so the original
-is visible again, and only then unmounts the overlay and calls `onClose`. `close(action?)` does
+Closing runs `progress` back to 0, restores the original's opacity and transform on the UI thread so
+it is visible again, and only then unmounts the overlay and calls `onClose`. `close(action?)` does
 nothing if the menu is already closing, and runs `action` only when that call starts the closing:
 `handleItemPress` passes `item.onPress` through it, and `renderMenu` content does the same, so a
 repeated press doesn't run the action twice. A closing menu also stops taking touches, but that
@@ -118,15 +120,15 @@ any `Dimensions` change close the menu.
   A custom `renderMenu` gets no theme.
 - A `PeekMenu` with no `items` and no `renderMenu`, its own or the provider's, is treated as
   `disabled`.
-- `clipInsets` adds to the top and bottom insets for layout when the content and the menu fit
-  within them (no drag range); otherwise layout and drag use only the safe area. When the original
-  is partly under them, the copy is rendered twice, moving together: one in a view clipped to
-  them, and one unclipped on top that fades in early with `progress` (`UNCOVERED_FADE`) and out
-  late. The clipped one matches the original from the first frame, so only what's over those edges
-  fades, and the cut at their edge shows only while the unclipped one is partly faded. This mirrors
-  Telegram iOS's crossfade. The original isn't hidden then: `useMenuAnimation` writes the copies'
-  offset into `originalOffset` every frame, so the original moves with them under whatever covers
-  it, and a translucent header shows it instead of a cut.
+- `clipInsets` adds to the top and bottom insets for layout when the content and the menu fit within
+  them (no drag range); otherwise layout and drag use only the safe area. When the original is
+  partly under them, the copy is rendered twice, moving together: one in a view clipped to them, and
+  one unclipped on top that fades in early with `progress` (`UNCOVERED_FADE`) and out late. The
+  clipped one matches the original from the first frame, so only what's over those edges fades, and
+  the cut at their edge shows only while the unclipped one is partly faded. This mirrors Telegram
+  iOS's crossfade. The original isn't hidden then: `useMenuAnimation` sets the copies' offset on it
+  every frame, so the original moves with them under whatever covers it, and a translucent header
+  shows it instead of a cut.
 - RTL: `getStyleLeft` flips `left` because React Native measures `left` from the right edge in RTL,
   while measurements stay physical. Positioning code should go through it.
 

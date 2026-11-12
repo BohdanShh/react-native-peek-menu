@@ -54,7 +54,7 @@ export function PeekMenuOverlay({
   const isCovered = rect.y < clipTop || rect.y + rect.height > root.height - clipBottom;
 
   const animation = useMenuAnimation({
-    originalOffset: menu.originalOffset,
+    originalRef: menu.originalRef,
     keepsOriginal: isCovered,
     isHeld: menu.activateOn === 'hold',
     onClosed: () => {
