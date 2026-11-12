@@ -1,7 +1,7 @@
 {
   "name": "react-native-peek-menu",
   "version": "1.2.2",
-  "description": "A performant, fully customizable long-press context menu for React Native.",
+  "description": "A context menu for any React Native component: messages, photos, list rows, cards.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "exports": {
