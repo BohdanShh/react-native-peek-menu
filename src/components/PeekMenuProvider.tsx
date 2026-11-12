@@ -11,7 +11,7 @@ import {
 } from 'react';
 import { Keyboard, StyleSheet, useColorScheme, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import type { SharedValue } from 'react-native-reanimated';
+import type { AnimatedRef } from 'react-native-reanimated';
 
 import { PeekMenuOverlay } from './PeekMenuOverlay';
 import { BACKDROP_COLOR } from '../constants';
@@ -34,7 +34,7 @@ type PeekMenuRequest = {
   placement: PeekMenuPlacement;
   activateOn: PeekMenuActivation;
   clipInsets?: PeekMenuClipInsets;
-  originalOffset: SharedValue<number | null>;
+  originalRef: AnimatedRef<View>;
   onOpen?: () => void;
   onClose?: () => void;
 };

@@ -1,12 +1,7 @@
 import { useRef, type ComponentProps, type ReactNode } from 'react';
 import { Pressable, type StyleProp, type View, type ViewStyle } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
-import Animated, {
-  useAnimatedRef,
-  useAnimatedStyle,
-  useSharedValue,
-  type AnimatedRef,
-} from 'react-native-reanimated';
+import Animated, { useAnimatedRef, type AnimatedRef } from 'react-native-reanimated';
 
 import { usePeekMenu } from './PeekMenuProvider';
 import { DOUBLE_TAP_DELAY, HOLD_DURATION } from '../constants';
@@ -131,7 +126,6 @@ export function PeekMenu({
 }: PeekMenuProps) {
   const { open, hasRenderMenu } = usePeekMenu();
   const ref = useAnimatedRef<View>();
-  const originalOffset = useSharedValue<number | null>(0);
   const isEmpty = items.length === 0 && !renderMenu && !hasRenderMenu;
   const isDisabled = disabled || isEmpty;
 
@@ -144,7 +138,7 @@ export function PeekMenu({
         renderMenu,
         placement,
         clipInsets,
-        originalOffset,
+        originalRef: ref,
         activateOn,
         onOpen,
         onClose,
@@ -152,18 +146,9 @@ export function PeekMenu({
     });
   };
 
-  const originalStyle = useAnimatedStyle(() => {
-    const offset = originalOffset.get();
-
-    return {
-      opacity: offset === null ? 0 : 1,
-      transform: [{ translateY: offset ?? 0 }],
-    };
-  });
-
   const triggerProps = {
     viewRef: ref,
-    style: [style, originalStyle],
+    style,
     disabled: isDisabled,
     onActivate: openMenu,
   };

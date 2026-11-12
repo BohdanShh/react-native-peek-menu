@@ -1,16 +1,18 @@
 import { useRef } from 'react';
+import type { View } from 'react-native';
 import { usePanGesture } from 'react-native-gesture-handler';
 import {
   cancelAnimation,
   clamp,
   interpolate,
+  setNativeProps,
   useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
   withDecay,
   withSpring,
   withTiming,
-  type SharedValue,
+  type AnimatedRef,
 } from 'react-native-reanimated';
 import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets';
 
@@ -23,7 +25,7 @@ import {
 } from '../constants';
 
 type MenuAnimationConfig = {
-  originalOffset: SharedValue<number | null>;
+  originalRef: AnimatedRef<View>;
   keepsOriginal: boolean;
   isHeld: boolean;
   onClosed: () => void;
@@ -48,7 +50,7 @@ const INITIAL_PLACEMENT: MenuPlacement = {
 };
 
 export function useMenuAnimation({
-  originalOffset,
+  originalRef,
   keepsOriginal,
   isHeld,
   onClosed,
@@ -89,7 +91,6 @@ export function useMenuAnimation({
       return;
     }
 
-    originalOffset.set(keepsOriginal ? 0 : null);
     placement.set(nextPlacement);
 
     /*
@@ -98,6 +99,10 @@ export function useMenuAnimation({
      */
     scheduleOnUI(() => {
       'worklet';
+
+      if (!keepsOriginal) {
+        setNativeProps(originalRef, { opacity: 0 });
+      }
 
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
@@ -119,7 +124,7 @@ export function useMenuAnimation({
       withTiming(0, CLOSE_TIMING, (finished) => {
         if (finished) {
           // The original has to be back before the copy on top of it goes.
-          originalOffset.set(0);
+          setNativeProps(originalRef, { opacity: 1, transform: [{ translateY: 0 }] });
           scheduleOnRN(onClosed);
         }
       }),
@@ -134,7 +139,7 @@ export function useMenuAnimation({
     () => (placement.get().shift + scroll.get()) * progress.get(),
     (offset) => {
       if (keepsOriginal) {
-        originalOffset.set(offset);
+        setNativeProps(originalRef, { transform: [{ translateY: offset }] });
       }
     },
   );
