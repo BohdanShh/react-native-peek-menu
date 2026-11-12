@@ -199,7 +199,7 @@ export function usePeekMenu() {
   const controls = useContext(PeekMenuControlsContext);
 
   if (!controls) {
-    throw new Error('usePeekMenu must be used within a PeekMenuProvider');
+    throw new Error('PeekMenu must be used inside a PeekMenuProvider');
   }
 
   return controls;
