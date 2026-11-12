@@ -215,13 +215,7 @@ function PressTrigger({
 
   return (
     <Animated.View ref={viewRef} collapsable={false} style={style}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityActions={[{ name: 'activate' }]}
-        onAccessibilityAction={disabled ? undefined : onActivate}
-        disabled={disabled}
-        onPress={handlePress}
-      >
+      <Pressable disabled={disabled} onPress={handlePress}>
         {children}
       </Pressable>
     </Animated.View>

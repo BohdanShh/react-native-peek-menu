@@ -142,12 +142,7 @@ export function PeekMenuOverlay({
           }
         >
           {renderBackdrop?.({ progress: animation.progress })}
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Close menu"
-            onPress={() => animation.close()}
-            style={StyleSheet.absoluteFill}
-          />
+          <Pressable onPress={() => animation.close()} style={StyleSheet.absoluteFill} />
         </Animated.View>
         {isCovered ? (
           <>

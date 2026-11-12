@@ -15,8 +15,6 @@ export function PeekMenuList({ items, onItemPress, isDark }: Props) {
       {items.map((item, index) => (
         <Pressable
           key={index}
-          accessibilityRole="menuitem"
-          accessibilityState={{ disabled: item.disabled }}
           disabled={item.disabled}
           onPress={() => onItemPress(item)}
           style={({ pressed }) => [
