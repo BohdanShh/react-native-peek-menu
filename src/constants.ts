@@ -2,7 +2,7 @@ import { Easing, type WithSpringConfig, type WithTimingConfig } from 'react-nati
 
 export const BACKDROP_COLOR = 'rgba(10, 14, 20, 0.5)';
 
-export const MENU_WIDTH = 220;
+export const MENU_WIDTH = 250;
 export const MENU_GAP = 7;
 export const SCREEN_PADDING_TOP = 8;
 export const SCREEN_PADDING_BOTTOM = 10;
@@ -15,9 +15,12 @@ export const HOLD_SCALE = 0.97;
 export const RELEASE_DURATION = 150;
 export const DOUBLE_TAP_DELAY = 300;
 
-export const MENU_START_SCALE = 0.8;
-export const MENU_START_OFFSET = 12;
+export const MENU_START_SCALE = 0.01;
+export const MENU_FADE_IN = 0.12;
 export const UNCOVERED_FADE = [0.05, 0.35];
 
-export const OPEN_SPRING: WithSpringConfig = { duration: 300, dampingRatio: 0.82 };
-export const CLOSE_TIMING: WithTimingConfig = { duration: 160, easing: Easing.out(Easing.quad) };
+export const OPEN_SPRING: WithSpringConfig = { duration: 420, dampingRatio: 0.8 };
+export const CLOSE_TIMING: WithTimingConfig = {
+  duration: 200,
+  easing: Easing.bezier(0.42, 0, 0.58, 1),
+};

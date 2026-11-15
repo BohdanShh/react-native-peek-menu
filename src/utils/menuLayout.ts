@@ -2,7 +2,6 @@ import { I18nManager } from 'react-native';
 
 import {
   MENU_GAP,
-  MENU_START_OFFSET,
   SCREEN_PADDING_BOTTOM,
   SCREEN_PADDING_HORIZONTAL,
   SCREEN_PADDING_TOP,
@@ -115,7 +114,6 @@ export function getMenuPlacement(
       shift,
       minScroll: Math.min(maxY - contentBottom - shift, 0),
       maxScroll: 0,
-      startOffset: MENU_START_OFFSET,
     };
   }
 
@@ -126,6 +124,5 @@ export function getMenuPlacement(
     shift,
     minScroll: 0,
     maxScroll: Math.max(minY - rect.y - shift, 0),
-    startOffset: -MENU_START_OFFSET,
   };
 }

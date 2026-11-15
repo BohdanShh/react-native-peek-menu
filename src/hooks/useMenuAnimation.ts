@@ -19,6 +19,7 @@ import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets';
 import {
   CLOSE_TIMING,
   HOLD_SCALE,
+  MENU_FADE_IN,
   MENU_START_SCALE,
   OPEN_SPRING,
   UNCOVERED_FADE,
@@ -35,7 +36,6 @@ type MenuPlacement = {
   shift: number;
   minScroll: number;
   maxScroll: number;
-  startOffset: number;
   translateX: number;
   transformOrigin: string;
 };
@@ -44,7 +44,6 @@ const INITIAL_PLACEMENT: MenuPlacement = {
   shift: 0,
   minScroll: 0,
   maxScroll: 0,
-  startOffset: 0,
   translateX: 0,
   transformOrigin: 'top left',
 };
@@ -166,15 +165,16 @@ export function useMenuAnimation({
 
   const menuStyle = useAnimatedStyle(() => {
     const value = progress.get();
-    const { shift, startOffset, translateX, transformOrigin } = placement.get();
+    const isLocked = isMenuLocked.get();
+    const { shift, translateX, transformOrigin } = placement.get();
 
     return {
-      opacity: Math.min(value * 2, 1),
-      pointerEvents: isMenuLocked.get() ? 'none' : 'auto',
+      opacity: isLocked ? value : Math.min(value / MENU_FADE_IN, 1),
+      pointerEvents: isLocked ? 'none' : 'auto',
       transformOrigin,
       transform: [
         { translateX },
-        { translateY: (shift + scroll.get()) * value + (1 - value) * startOffset },
+        { translateY: (shift + scroll.get()) * value },
         { scale: MENU_START_SCALE + (1 - MENU_START_SCALE) * value },
       ],
     };
