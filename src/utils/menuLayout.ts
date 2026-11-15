@@ -7,7 +7,13 @@ import {
   SCREEN_PADDING_HORIZONTAL,
   SCREEN_PADDING_TOP,
 } from '../constants';
-import type { PeekMenuClipInsets, PeekMenuInsets, PeekMenuPlacement, PeekMenuRect } from '../types';
+import type {
+  PeekMenuAlignment,
+  PeekMenuClipInsets,
+  PeekMenuInsets,
+  PeekMenuPlacement,
+  PeekMenuRect,
+} from '../types';
 
 /**
  * The `left` style for a box at physical `x`. In RTL, React Native measures `left` from the right
@@ -38,26 +44,50 @@ export function getMenuMaxWidth(rootWidth: number, insets: PeekMenuInsets) {
 }
 
 /**
- * Where the menu sits across the screen: lined up with the content's nearer side, kept clear of the
- * sides of the screen, and growing from the corner next to the content.
+ * Where the menu sits across the screen: lined up with the content as `alignment` says, kept clear
+ * of the sides of the screen, and growing from the point of the content it's lined up with.
  */
-export function getMenuPosition(
-  rect: PeekMenuRect,
-  menuWidth: number,
-  rootWidth: number,
-  insets: PeekMenuInsets,
-  placement: PeekMenuPlacement,
-) {
-  const isOnRightSide = rect.x + rect.width / 2 > rootWidth / 2;
-  const left = isOnRightSide ? rect.x + rect.width - menuWidth : rect.x;
+export function getMenuPosition({
+  rect,
+  menuWidth,
+  rootWidth,
+  insets,
+  placement,
+  alignment,
+}: {
+  rect: PeekMenuRect;
+  menuWidth: number;
+  rootWidth: number;
+  insets: PeekMenuInsets;
+  placement: PeekMenuPlacement;
+  alignment: PeekMenuAlignment;
+}) {
+  const { isRTL } = I18nManager.getConstants();
+  const center = rect.x + rect.width / 2;
+
+  const sides = {
+    auto: center > rootWidth / 2 ? 'right' : 'left',
+    start: isRTL ? 'right' : 'left',
+    center: 'center',
+    end: isRTL ? 'left' : 'right',
+  } as const;
+  const side = sides[alignment];
+
+  const anchors = { left: rect.x, center, right: rect.x + rect.width };
+  const offsets = { left: 0, center: menuWidth / 2, right: menuWidth };
+  const anchor = anchors[side];
+  const left = anchor - offsets[side];
+
   const minLeft = insets.left + SCREEN_PADDING_HORIZONTAL;
   const maxLeft = rootWidth - insets.right - SCREEN_PADDING_HORIZONTAL - menuWidth;
-
   const clampedLeft = Math.max(minLeft, Math.min(left, maxLeft));
+
+  const originX = Math.max(0, Math.min(anchor - clampedLeft, menuWidth));
+  const originY = placement === 'top' ? '100%' : '0%';
 
   return {
     translateX: clampedLeft - getStyleLeft(0, menuWidth, rootWidth),
-    transformOrigin: `${placement === 'top' ? 'bottom' : 'top'} ${isOnRightSide ? 'right' : 'left'}`,
+    transformOrigin: `${originX}px ${originY}`,
   };
 }
 

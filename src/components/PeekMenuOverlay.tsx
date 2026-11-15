@@ -97,7 +97,14 @@ export function PeekMenuOverlay({
       ...(fits
         ? clippedPlacement
         : getMenuPlacement(rect, height, root.height, insets, menu.placement)),
-      ...getMenuPosition(rect, width, root.width, insets, menu.placement),
+      ...getMenuPosition({
+        rect,
+        menuWidth: width,
+        rootWidth: root.width,
+        insets,
+        placement: menu.placement,
+        alignment: menu.alignment,
+      }),
     });
   };
 
