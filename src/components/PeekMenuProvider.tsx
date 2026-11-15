@@ -17,6 +17,7 @@ import { PeekMenuOverlay } from './PeekMenuOverlay';
 import { BACKDROP_COLOR } from '../constants';
 import type {
   PeekMenuActivation,
+  PeekMenuAlignment,
   PeekMenuBackdropProps,
   PeekMenuClipInsets,
   PeekMenuInsets,
@@ -32,6 +33,7 @@ type PeekMenuRequest = {
   content: ReactNode;
   renderMenu?: (props: PeekMenuRenderProps) => ReactNode;
   placement: PeekMenuPlacement;
+  alignment: PeekMenuAlignment;
   activateOn: PeekMenuActivation;
   clipInsets?: PeekMenuClipInsets;
   originalRef: AnimatedRef<View>;

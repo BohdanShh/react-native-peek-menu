@@ -4,6 +4,7 @@ export type { PeekMenuProps } from './components/PeekMenu';
 export type { PeekMenuProviderProps } from './components/PeekMenuProvider';
 export type {
   PeekMenuActivation,
+  PeekMenuAlignment,
   PeekMenuBackdropProps,
   PeekMenuClipInsets,
   PeekMenuInsets,

@@ -41,6 +41,12 @@ export type PeekMenuClipInsets = {
   bottom?: number;
 };
 
+/**
+ * Where the menu sits across the screen. `'auto'` lines it up with the side of the content nearer
+ * to the edge of the screen. `'start'` and `'end'` follow the layout direction, like `marginStart`.
+ */
+export type PeekMenuAlignment = 'auto' | 'start' | 'center' | 'end';
+
 /** How the content opens the menu. */
 export type PeekMenuActivation = 'hold' | 'tap' | 'double-tap';
 

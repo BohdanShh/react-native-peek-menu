@@ -8,6 +8,7 @@ import { DOUBLE_TAP_DELAY, HOLD_DURATION } from '../constants';
 import { useHold } from '../hooks/useHold';
 import type {
   PeekMenuActivation,
+  PeekMenuAlignment,
   PeekMenuClipInsets,
   PeekMenuItem,
   PeekMenuPlacement,
@@ -60,6 +61,15 @@ export type PeekMenuProps = PeekMenuContent & {
    * @default 'bottom'
    */
   placement?: PeekMenuPlacement;
+  /**
+   * Where the menu sits across the screen. `'auto'` lines it up with the side of the content nearer
+   * to the edge of the screen. `'start'`, `'center'` and `'end'` line it up with that part of the
+   * content, like `'center'` for a grid, and `'start'` and `'end'` follow the layout direction. The
+   * menu stays on screen either way.
+   *
+   * @default 'auto'
+   */
+  alignment?: PeekMenuAlignment;
   /**
    * How much of the top and bottom of the provider's area is covered by something, opaque or
    * translucent, like a header or an input bar. The content and the menu keep clear of it when they
@@ -115,6 +125,7 @@ export function PeekMenu({
   children,
   preview,
   placement = 'bottom',
+  alignment = 'auto',
   clipInsets,
   activateOn = 'hold',
   holdDuration = HOLD_DURATION,
@@ -137,6 +148,7 @@ export function PeekMenu({
         content: preview ?? children,
         renderMenu,
         placement,
+        alignment,
         clipInsets,
         originalRef: ref,
         activateOn,
