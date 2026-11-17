@@ -1,5 +1,5 @@
-import { useRef, type ComponentProps, type ReactNode } from 'react';
-import { Pressable, type StyleProp, type View, type ViewStyle } from 'react-native';
+import { useRef, type ReactNode } from 'react';
+import { Pressable, View, type StyleProp, type ViewStyle } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useAnimatedRef, type AnimatedRef } from 'react-native-reanimated';
 
@@ -12,6 +12,7 @@ import type {
   PeekMenuClipInsets,
   PeekMenuItem,
   PeekMenuPlacement,
+  PeekMenuPreview,
   PeekMenuRenderProps,
 } from '../types';
 
@@ -46,14 +47,18 @@ export type PeekMenuProps = PeekMenuContent & {
    */
   children: ReactNode;
   /**
-   * Shown instead of `children` above the screen while the menu is open, in the same box. It also
-   * renders inside the provider, so hand it what it needs through props, or wrap it in the context
-   * providers it reads.
+   * Shown instead of `children` above the screen while the menu is open. It sizes itself and opens
+   * from the middle of `children`, so give it a `width` or a `height` when it needs one. One wider
+   * than the screen is scaled down to fit. It also renders inside the provider, so hand it what it
+   * needs through props, or wrap it in the context providers it reads. As a function, it gets
+   * `isOpened`, to show heavy content only once the menu has opened.
    *
    * @example
    * preview={<Bubble text={text} isExpanded={isExpanded} theme={theme} />}
+   * @example
+   * preview={({ isOpened }) => <LinkCard>{isOpened && <WebView source={source} />}</LinkCard>}
    */
-  preview?: ReactNode;
+  preview?: PeekMenuPreview;
   /**
    * The side of the content the menu opens on. It stays there even when space runs out: the content
    * moves to make room, and if both still don't fit, dragging brings back the rest.
@@ -141,11 +146,12 @@ export function PeekMenu({
   const isDisabled = disabled || isEmpty;
 
   const openMenu = () => {
-    ref.current?.measureInWindow((x, y, measuredWidth, height) => {
+    ref.current?.measureInWindow((x, y, width, height) => {
       open({
         items,
-        rect: { x, y, width: measuredWidth, height },
-        content: preview ?? children,
+        rect: { x, y, width, height },
+        content: children,
+        preview,
         renderMenu,
         placement,
         alignment,
@@ -178,7 +184,7 @@ export function PeekMenu({
 
 type TriggerProps = {
   viewRef: AnimatedRef<View>;
-  style: ComponentProps<typeof Animated.View>['style'];
+  style: StyleProp<ViewStyle>;
   disabled: boolean;
   onActivate: () => void;
   children: ReactNode;
@@ -196,10 +202,10 @@ function HoldTrigger({
 
   return (
     <GestureDetector gesture={gesture}>
-      <Animated.View ref={viewRef} collapsable={false} style={style}>
+      <View ref={viewRef} collapsable={false} style={style}>
         {/* The scale stays on an inner view so it doesn't skew the measured rect. */}
         <Animated.View style={animatedStyle}>{children}</Animated.View>
-      </Animated.View>
+      </View>
     </GestureDetector>
   );
 }
@@ -226,10 +232,10 @@ function PressTrigger({
   };
 
   return (
-    <Animated.View ref={viewRef} collapsable={false} style={style}>
+    <View ref={viewRef} collapsable={false} style={style}>
       <Pressable disabled={disabled} onPress={handlePress}>
         {children}
       </Pressable>
-    </Animated.View>
+    </View>
   );
 }

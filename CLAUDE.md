@@ -70,21 +70,24 @@ Opening:
    button. The pan's config is memoized on `duration` and `disabled`, with `onActivate` read through
    a ref, since Gesture Handler sends a config with a new identity to the native handler again.
 2. `PeekMenu` measures itself in window coordinates and calls `open` with its items, its rect, its
-   `renderMenu`, the content to show (`preview ?? children`) and its animated ref. These are
-   captured at that moment and don't update while the menu is open. The scale sits on an inner view
-   so it doesn't distort the measurement.
+   `renderMenu`, `children`, `preview` and its animated ref. These are captured at that moment and
+   don't update while the menu is open. The scale sits on an inner view so it doesn't distort the
+   measurement.
 3. The provider measures where the overlay draws (its root, or the host inside `overlayContainer`),
    subtracts that view's window offset from the rect (they differ on Android by the status bar),
    records how much of the root's bottom the keyboard covers (from `Keyboard.metrics().screenY`,
    used as the bottom inset when larger than `safeAreaInsets.bottom`) and stores the active menu.
    While a menu is active, another `open` is ignored.
-4. `PeekMenuOverlay` mounts the backdrop, a copy of the content at the rect, and the menu. The menu
-   starts invisible, and its `onLayout` (`handleMenuLayout`) reports its size.
+4. `PeekMenuOverlay` mounts the backdrop, a copy of the content at the rect, and the menu, and only
+   renders: measuring and placing live in `useMenuLayout`. The menu starts invisible, and its
+   `onLayout` (and the preview's, if any) reports its size. The menu is placed once: layouts after
+   that are ignored, so a preview that changes size can't restart the opening.
 5. With that size, `getMenuPlacement` and `getMenuPosition` in `src/utils/menuLayout.ts` compute the
    vertical shift, the drag range (`minScroll`/`maxScroll`, for when the content and the menu can't
-   both fit), the horizontal `translateX` and the transform origin. `animation.open` stores them in
-   a shared value and hides the original under the copy with `setNativeProps` on the UI thread
-   (unless it's partly under `clipInsets`, see below).
+   both fit), the horizontal `translateX` and the transform origin, and `getCopyMotion` the path of
+   the copy. `animation.open` stores them in a shared value and hides the original under the copy
+   with `setNativeProps` on the UI thread, unless the copy is a preview that fades in over it or the
+   original is partly under `clipInsets` (see below).
 
 `useMenuAnimation` owns all the motion, driven by one `progress` value from 0 to 1:
 
@@ -102,15 +105,21 @@ nothing if the menu is already closing, and runs `action` only when that call st
 `handleItemPress` passes `item.onPress` through it, and `renderMenu` content does the same, so a
 repeated press doesn't run the action twice. A closing menu also stops taking touches, but that
 reaches the UI a frame or more later, so it can't guarantee this on its own. `animation.open` is
-ignored while closing, so a late layout can't hide the original again. The Android back button and
-any `Dimensions` change close the menu.
+ignored while closing, so a menu closed before it was measured can't hide the original. The Android
+back button and any `Dimensions` change close the menu.
 
 ### Consequences of this design
 
 - The content is rendered a second time, inside the provider. It loses local state, and hooks that
   need a context below the provider throw when the menu opens. `preview` is the way around that; it
-  also renders inside the provider, in the box of the original. Swapping `children` for `preview`
-  isn't animated.
+  also renders inside the provider, but sizes itself. One that measures 0 wide, like
+  `width: '100%'`, has its wrapper stretched with `setNativeProps` on the UI thread and is measured
+  again; one wider than the screen ends scaled down to it (`getPreviewScale`, the copy motion's
+  `endScale`). The copy of `children` and the preview are one path: `getCopyRect` centers the copy
+  on the original, clamped to the screen, `getCopyMotion` turns that into one animated style, and
+  the menu lays out around that rect. A copy the size of the original swaps in for it; any other
+  size grows from the original's size and fades in over it (`PREVIEW_FADE_IN`), and the original
+  isn't hidden.
 - With `renderBackdrop`, the library doesn't apply its own `opacity` to that layer, because a fading
   parent can break a native blur. The backdrop animates itself with `progress`.
 - The wrapper around the menu has no width; the menu sizes itself. `MENU_WIDTH` belongs to the
@@ -128,7 +137,11 @@ any `Dimensions` change close the menu.
   the cut at their edge shows only while the unclipped one is partly faded. This mirrors Telegram
   iOS's crossfade. The original isn't hidden then: `useMenuAnimation` sets the copies' offset on it
   every frame, so the original moves with them under whatever covers it, and a translucent header
-  shows it instead of a cut.
+  shows it instead of a cut. A preview that fades in leaves the original in place, as it does
+  elsewhere, since it doesn't look like the original.
+- A function `preview` renders through `PreviewContent`, which holds `isOpened`: the open spring's
+  end sets it through a ref, so opening re-renders only the preview, and the overlay has no state.
+  When the copy is rendered twice, only the one on top gets it, so heavy content mounts once.
 - RTL: `getStyleLeft` flips `left` because React Native measures `left` from the right edge in RTL,
   while measurements stay physical. Positioning code should go through it.
 
