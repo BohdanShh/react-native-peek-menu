@@ -23,6 +23,7 @@ import type {
   PeekMenuInsets,
   PeekMenuItem,
   PeekMenuPlacement,
+  PeekMenuPreview,
   PeekMenuRenderProps,
   PeekMenuRect,
 } from '../types';
@@ -31,6 +32,7 @@ type PeekMenuRequest = {
   items: PeekMenuItem[];
   rect: PeekMenuRect;
   content: ReactNode;
+  preview: PeekMenuPreview;
   renderMenu?: (props: PeekMenuRenderProps) => ReactNode;
   placement: PeekMenuPlacement;
   alignment: PeekMenuAlignment;
@@ -124,25 +126,22 @@ export function PeekMenuProvider({
   const systemColorScheme = useColorScheme();
   const isDark = (colorScheme === 'system' ? systemColorScheme : colorScheme) === 'dark';
 
-  const open = useCallback(
-    (request: PeekMenuRequest) => {
-      // Window coordinates can start somewhere else than the root, by the status bar on Android.
-      const host = OverlayContainer ? hostRef.current : rootRef.current;
+  const open = useCallback((request: PeekMenuRequest) => {
+    // Window coordinates can start somewhere else than the root, by the status bar on Android.
+    const host = hostRef.current ?? rootRef.current;
 
-      host?.measureInWindow((x, y, width, height) => {
-        const rect = { ...request.rect, x: request.rect.x - x, y: request.rect.y - y };
-        // The keyboard's top edge is in window coordinates too, so this works whether the root
-        // ends behind the keyboard or above it.
-        const keyboard = Keyboard.metrics();
-        const keyboardOverlap = keyboard ? Math.max(y + height - keyboard.screenY, 0) : 0;
+    host?.measureInWindow((x, y, width, height) => {
+      const rect = { ...request.rect, x: request.rect.x - x, y: request.rect.y - y };
+      // The keyboard's top edge is in window coordinates too, so this works whether the root
+      // ends behind the keyboard or above it.
+      const keyboard = Keyboard.metrics();
+      const keyboardOverlap = keyboard ? Math.max(y + height - keyboard.screenY, 0) : 0;
 
-        setActiveMenu(
-          (current) => current ?? { ...request, rect, root: { width, height }, keyboardOverlap },
-        );
-      });
-    },
-    [OverlayContainer],
-  );
+      setActiveMenu(
+        (current) => current ?? { ...request, rect, root: { width, height }, keyboardOverlap },
+      );
+    });
+  }, []);
 
   const close = useCallback(() => setActiveMenu(null), []);
 
@@ -188,11 +187,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   host: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
+    ...StyleSheet.absoluteFill,
     pointerEvents: 'box-none',
   },
 });

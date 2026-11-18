@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useMemo } from 'react';
 import type { View } from 'react-native';
 import { usePanGesture } from 'react-native-gesture-handler';
 import {
@@ -8,6 +8,7 @@ import {
   setNativeProps,
   useAnimatedReaction,
   useAnimatedStyle,
+  useDerivedValue,
   useSharedValue,
   withDecay,
   withSpring,
@@ -18,75 +19,84 @@ import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets';
 
 import {
   CLOSE_TIMING,
+  DRAG_START_DISTANCE,
   HOLD_SCALE,
   MENU_FADE_IN,
   MENU_START_SCALE,
   OPEN_SPRING,
+  PREVIEW_FADE_IN,
   UNCOVERED_FADE,
 } from '../constants';
+import type { CopyMotion, MenuPlacement } from '../utils/menuLayout';
 
 type MenuAnimationConfig = {
   originalRef: AnimatedRef<View>;
   keepsOriginal: boolean;
   isHeld: boolean;
+  initialMotion: CopyMotion;
+  onOpened?: () => void;
   onClosed: () => void;
 };
 
-type MenuPlacement = {
-  shift: number;
-  minScroll: number;
-  maxScroll: number;
-  translateX: number;
-  transformOrigin: string;
-};
+function fadeIn(value: number, isClosing: boolean, until: number) {
+  'worklet';
 
-const INITIAL_PLACEMENT: MenuPlacement = {
-  shift: 0,
-  minScroll: 0,
-  maxScroll: 0,
-  translateX: 0,
-  transformOrigin: 'top left',
-};
+  return isClosing ? value : Math.min(value / until, 1);
+}
 
 export function useMenuAnimation({
   originalRef,
   keepsOriginal,
   isHeld,
+  initialMotion,
+  onOpened,
   onClosed,
 }: MenuAnimationConfig) {
   const progress = useSharedValue(0);
   const scale = useSharedValue(isHeld ? HOLD_SCALE : 1);
   const scroll = useSharedValue(0);
-  const placement = useSharedValue(INITIAL_PLACEMENT);
-  const isClosing = useRef(false);
-  const isMenuLocked = useSharedValue(false);
-
-  const scrollGesture = usePanGesture({
-    activeOffsetY: [-10, 10],
-    onBegin: () => {
-      'worklet';
-
-      cancelAnimation(scroll);
-    },
-    onUpdate: (event) => {
-      'worklet';
-
-      const { minScroll, maxScroll } = placement.get();
-
-      scroll.set(clamp(scroll.get() + event.changeY, minScroll, maxScroll));
-    },
-    onDeactivate: (event) => {
-      'worklet';
-
-      const { minScroll, maxScroll } = placement.get();
-
-      scroll.set(withDecay({ velocity: event.velocityY, clamp: [minScroll, maxScroll] }));
-    },
+  const placement = useSharedValue<MenuPlacement>({
+    ...initialMotion,
+    shift: 0,
+    minScroll: 0,
+    maxScroll: 0,
+    translateX: 0,
+    transformOrigin: 'top left',
   });
+  const isClosing = useSharedValue(false);
+  const offset = useDerivedValue(() => placement.get().shift + scroll.get());
+
+  const scrollConfig = useMemo(
+    (): Parameters<typeof usePanGesture>[0] => ({
+      activeOffsetY: [-DRAG_START_DISTANCE, DRAG_START_DISTANCE],
+      onBegin: () => {
+        'worklet';
+
+        cancelAnimation(scroll);
+      },
+      onUpdate: (event) => {
+        'worklet';
+
+        const { minScroll, maxScroll } = placement.get();
+
+        scroll.set(clamp(scroll.get() + event.changeY, minScroll, maxScroll));
+      },
+      onDeactivate: (event) => {
+        'worklet';
+
+        const { minScroll, maxScroll } = placement.get();
+
+        scroll.set(withDecay({ velocity: event.velocityY, clamp: [minScroll, maxScroll] }));
+      },
+    }),
+    [placement, scroll],
+  );
+
+  const scrollGesture = usePanGesture(scrollConfig);
 
   const open = (nextPlacement: MenuPlacement) => {
-    // A resize while closing must not hide the original again: nothing would bring it back.
-    if (isClosing.current) {
+    // A menu closed before it was measured must not hide the original: nothing would bring it back.
+    if (isClosing.get()) {
       return;
     }
 
@@ -99,13 +109,19 @@ export function useMenuAnimation({
     scheduleOnUI(() => {
       'worklet';
 
-      if (!keepsOriginal) {
+      if (!keepsOriginal && !nextPlacement.fades) {
         setNativeProps(originalRef, { opacity: 0 });
       }
 
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          progress.set(withSpring(1, OPEN_SPRING));
+          progress.set(
+            withSpring(1, OPEN_SPRING, (finished) => {
+              if (finished && onOpened) {
+                scheduleOnRN(onOpened);
+              }
+            }),
+          );
           scale.set(withSpring(1, OPEN_SPRING));
         });
       });
@@ -113,12 +129,11 @@ export function useMenuAnimation({
   };
 
   const close = (action?: () => void) => {
-    if (isClosing.current) {
+    if (isClosing.get()) {
       return;
     }
 
-    isClosing.current = true;
-    isMenuLocked.set(true);
+    isClosing.set(true);
     progress.set(
       withTiming(0, CLOSE_TIMING, (finished) => {
         if (finished) {
@@ -135,10 +150,10 @@ export function useMenuAnimation({
   };
 
   useAnimatedReaction(
-    () => (placement.get().shift + scroll.get()) * progress.get(),
-    (offset) => {
-      if (keepsOriginal) {
-        setNativeProps(originalRef, { transform: [{ translateY: offset }] });
+    () => (keepsOriginal && !placement.get().fades ? offset.get() * progress.get() : null),
+    (translateY) => {
+      if (translateY !== null) {
+        setNativeProps(originalRef, { transform: [{ translateY }] });
       }
     },
   );
@@ -152,12 +167,19 @@ export function useMenuAnimation({
     opacity: progress.get(),
   }));
 
-  const copyStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateY: (placement.get().shift + scroll.get()) * progress.get() },
-      { scale: scale.get() },
-    ],
-  }));
+  const copyStyle = useAnimatedStyle(() => {
+    const value = progress.get();
+    const { startX, endX, dy, startScale, endScale, fades } = placement.get();
+
+    return {
+      opacity: fades ? fadeIn(value, isClosing.get(), PREVIEW_FADE_IN) : 1,
+      transform: [
+        { translateX: startX + (endX - startX) * value },
+        { translateY: dy + offset.get() * value },
+        { scale: (startScale + (endScale - startScale) * value) * scale.get() },
+      ],
+    };
+  });
 
   const uncoveredCopyStyle = useAnimatedStyle(() => ({
     opacity: interpolate(progress.get(), UNCOVERED_FADE, [0, 1], 'clamp'),
@@ -165,16 +187,16 @@ export function useMenuAnimation({
 
   const menuStyle = useAnimatedStyle(() => {
     const value = progress.get();
-    const isLocked = isMenuLocked.get();
-    const { shift, translateX, transformOrigin } = placement.get();
+    const closing = isClosing.get();
+    const { translateX, transformOrigin, menuOffset } = placement.get();
 
     return {
-      opacity: isLocked ? value : Math.min(value / MENU_FADE_IN, 1),
-      pointerEvents: isLocked ? 'none' : 'auto',
+      opacity: fadeIn(value, closing, MENU_FADE_IN),
+      pointerEvents: closing ? 'none' : 'auto',
       transformOrigin,
       transform: [
         { translateX },
-        { translateY: (shift + scroll.get()) * value },
+        { translateY: (menuOffset + offset.get()) * value },
         { scale: MENU_START_SCALE + (1 - MENU_START_SCALE) * value },
       ],
     };

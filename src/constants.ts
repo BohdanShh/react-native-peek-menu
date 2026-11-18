@@ -14,10 +14,12 @@ export const HOLD_DELAY_RATIO = 0.4;
 export const HOLD_SCALE = 0.97;
 export const RELEASE_DURATION = 150;
 export const DOUBLE_TAP_DELAY = 300;
+export const DRAG_START_DISTANCE = 10;
 
 export const MENU_START_SCALE = 0.01;
 export const MENU_FADE_IN = 0.12;
 export const UNCOVERED_FADE = [0.05, 0.35];
+export const PREVIEW_FADE_IN = 0.35;
 
 export const OPEN_SPRING: WithSpringConfig = { duration: 420, dampingRatio: 0.8 };
 export const CLOSE_TIMING: WithTimingConfig = {

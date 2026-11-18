@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
 
 ### A custom preview
 
-If the content reads a context, like a theme, pass what it needs through `preview`.
+If the content reads a context, like a theme, pass what it needs through `preview`. It can also show something else, like a larger photo. The preview takes its own size and opens from the content, so set its `width` or `height` when it needs one: `width: '100%'` makes it as wide as the screen allows, and a wider one is scaled down to fit.
 
 ```tsx
 import { PeekMenu } from 'react-native-peek-menu';
@@ -281,6 +281,29 @@ function ChatMessage({ message }: { message: Message }) {
   return (
     <PeekMenu items={items} preview={<Bubble message={message} theme={theme} />}>
       <ThemedBubble message={message} />
+    </PeekMenu>
+  );
+}
+```
+
+For heavy content, like a WebView, pass a function and show that content once `isOpened` is `true`, in a box of the same size, so it doesn't slow down the opening.
+
+```tsx
+import { View } from 'react-native';
+import { PeekMenu } from 'react-native-peek-menu';
+import { WebView } from 'react-native-webview';
+
+function LinkMessage({ url }: { url: string }) {
+  return (
+    <PeekMenu
+      items={items}
+      preview={({ isOpened }) => (
+        <View style={{ width: '100%', height: 420 }}>
+          {isOpened && <WebView source={{ uri: url }} style={{ flex: 1 }} />}
+        </View>
+      )}
+    >
+      <LinkBubble url={url} />
     </PeekMenu>
   );
 }
@@ -304,21 +327,21 @@ function ChatMessage({ message }: { message: Message }) {
 
 A `PeekMenu` needs `items`, `renderMenu`, or both.
 
-| Prop           | Type                                        | Default    | Description                                                                                                   |
-| -------------- | ------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------- |
-| `children`     | `ReactNode`                                 | required   | The content that opens the menu, held by default.                                                             |
-| `items`        | `PeekMenuItem[]`                            | `[]`       | The rows, read when the menu opens. An empty list stops it from opening, unless there's a `renderMenu`.       |
-| `renderMenu`   | `(props: PeekMenuRenderProps) => ReactNode` |            | Renders this menu instead of the default list.                                                                |
-| `preview`      | `ReactNode`                                 |            | Shown instead of the copy of `children`.                                                                      |
-| `placement`    | `'top' \| 'bottom'`                         | `'bottom'` | The side of the content the menu opens on.                                                                    |
-| `alignment`    | `'auto' \| 'start' \| 'center' \| 'end'`    | `'auto'`   | Where the menu lines up with the content. `'start'` and `'end'` follow the layout direction.                  |
-| `clipInsets`   | `{ top?: number; bottom?: number }`         |            | How much of the top and bottom is covered by something, opaque or translucent, like a header or an input bar. |
-| `activateOn`   | `'hold' \| 'tap' \| 'double-tap'`           | `'hold'`   | How the content opens the menu. With a tap, the content shouldn't handle presses itself.                      |
-| `holdDuration` | `number`                                    | `300`      | How long to hold, in milliseconds. Only used with `activateOn` set to `'hold'`.                               |
-| `disabled`     | `boolean`                                   | `false`    | Stops the content from opening the menu.                                                                      |
-| `style`        | `StyleProp<ViewStyle>`                      |            | Layout of the wrapper, like `margin` or `alignSelf`.                                                          |
-| `onOpen`       | `() => void`                                |            | Called when the menu starts to open.                                                                          |
-| `onClose`      | `() => void`                                |            | Called once the menu has finished closing.                                                                    |
+| Prop           | Type                                                        | Default    | Description                                                                                                                                    |
+| -------------- | ----------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `children`     | `ReactNode`                                                 | required   | The content that opens the menu, held by default.                                                                                              |
+| `items`        | `PeekMenuItem[]`                                            | `[]`       | The rows, read when the menu opens. An empty list stops it from opening, unless there's a `renderMenu`.                                        |
+| `renderMenu`   | `(props: PeekMenuRenderProps) => ReactNode`                 |            | Renders this menu instead of the default list.                                                                                                 |
+| `preview`      | `ReactNode \| ((props: PeekMenuPreviewProps) => ReactNode)` |            | Shown instead of the copy of `children`. It takes its own size, so give it a `width` or `height` if needed. As a function, it gets `isOpened`. |
+| `placement`    | `'top' \| 'bottom'`                                         | `'bottom'` | The side of the content the menu opens on.                                                                                                     |
+| `alignment`    | `'auto' \| 'start' \| 'center' \| 'end'`                    | `'auto'`   | Where the menu lines up with the content. `'start'` and `'end'` follow the layout direction.                                                   |
+| `clipInsets`   | `{ top?: number; bottom?: number }`                         |            | How much of the top and bottom is covered by something, opaque or translucent, like a header or an input bar.                                  |
+| `activateOn`   | `'hold' \| 'tap' \| 'double-tap'`                           | `'hold'`   | How the content opens the menu. With a tap, the content shouldn't handle presses itself.                                                       |
+| `holdDuration` | `number`                                                    | `300`      | How long to hold, in milliseconds. Only used with `activateOn` set to `'hold'`.                                                                |
+| `disabled`     | `boolean`                                                   | `false`    | Stops the content from opening the menu.                                                                                                       |
+| `style`        | `StyleProp<ViewStyle>`                                      |            | Layout of the wrapper, like `margin` or `alignSelf`.                                                                                           |
+| `onOpen`       | `() => void`                                                |            | Called when the menu starts to open.                                                                                                           |
+| `onClose`      | `() => void`                                                |            | Called once the menu has finished closing.                                                                                                     |
 
 ### `PeekMenuItem`
 
@@ -345,6 +368,14 @@ What `renderMenu` receives.
 ### `PeekMenuBackdropProps`
 
 What `renderBackdrop` receives: `progress`, the same value as above.
+
+### `PeekMenuPreviewProps`
+
+What `preview` receives when it's a function.
+
+| Field      | Type      | Description                                                                   |
+| ---------- | --------- | ----------------------------------------------------------------------------- |
+| `isOpened` | `boolean` | Whether the menu has finished opening. It stays `true` while the menu closes. |
 
 ## License
 

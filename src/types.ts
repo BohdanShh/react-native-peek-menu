@@ -76,6 +76,19 @@ export type PeekMenuRenderProps = {
   progress: SharedValue<number>;
 };
 
+/** What `preview` receives when it's a function. */
+export type PeekMenuPreviewProps = {
+  /**
+   * Whether the menu has finished opening. It stays `true` while the menu closes. Show heavy
+   * content, like a WebView, only once it's `true`, in a box of the same size, so it doesn't slow
+   * down the opening.
+   */
+  isOpened: boolean;
+};
+
+/** The content shown instead of `children` while the menu is open, or a function returning it. */
+export type PeekMenuPreview = ReactNode | ((props: PeekMenuPreviewProps) => ReactNode);
+
 export type PeekMenuRect = {
   x: number;
   y: number;

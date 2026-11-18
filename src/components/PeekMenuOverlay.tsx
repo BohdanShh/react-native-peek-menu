@@ -1,12 +1,5 @@
-import { useEffect, type ReactNode } from 'react';
-import {
-  BackHandler,
-  Dimensions,
-  Pressable,
-  StyleSheet,
-  View,
-  type LayoutChangeEvent,
-} from 'react-native';
+import { useEffect, useImperativeHandle, useRef, useState, type ReactNode, type Ref } from 'react';
+import { BackHandler, Dimensions, Pressable, StyleSheet, View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 
@@ -14,17 +7,18 @@ import { PeekMenuList } from './PeekMenuList';
 import type { ActivePeekMenu } from './PeekMenuProvider';
 import { MENU_GAP } from '../constants';
 import { useMenuAnimation } from '../hooks/useMenuAnimation';
+import { useMenuLayout } from '../hooks/useMenuLayout';
 import type {
   PeekMenuBackdropProps,
   PeekMenuInsets,
   PeekMenuItem,
+  PeekMenuPreviewProps,
   PeekMenuRenderProps,
 } from '../types';
 import {
+  getCopyMotion,
+  getHorizontalBounds,
   getMenuInsets,
-  getMenuMaxWidth,
-  getMenuPlacement,
-  getMenuPosition,
   getStyleLeft,
 } from '../utils/menuLayout';
 
@@ -49,64 +43,65 @@ export function PeekMenuOverlay({
 }: Props) {
   const { rect, root } = menu;
   const insets = getMenuInsets(safeAreaInsets, menu.keyboardOverlap);
-  const clippedInsets = getMenuInsets(safeAreaInsets, menu.keyboardOverlap, menu.clipInsets);
   const { top: clipTop = 0, bottom: clipBottom = 0 } = menu.clipInsets ?? {};
+  const { preview } = menu;
+  const hasPreview = preview != null && typeof preview !== 'boolean';
   const isCovered = rect.y < clipTop || rect.y + rect.height > root.height - clipBottom;
+  const bounds = getHorizontalBounds(root.width, insets);
+
+  const openPreview = useRef<() => void>(null);
 
   const animation = useMenuAnimation({
     originalRef: menu.originalRef,
     keepsOriginal: isCovered,
     isHeld: menu.activateOn === 'hold',
+    initialMotion: { ...getCopyMotion(rect, rect, bounds, menu.placement), fades: hasPreview },
+    onOpened: typeof preview === 'function' ? () => openPreview.current?.() : undefined,
     onClosed: () => {
       onClosed();
       menu.onClose?.();
     },
   });
 
+  const layout = useMenuLayout({
+    menu,
+    safeAreaInsets,
+    insets,
+    bounds,
+    hasPreview,
+    isCovered,
+    onPlace: animation.open,
+  });
+
+  const renderContent = (isOnTop: boolean) => {
+    if (typeof preview === 'function') {
+      return <PreviewContent ref={isOnTop ? openPreview : undefined} preview={preview} />;
+    }
+
+    return hasPreview ? preview : menu.content;
+  };
+
   const renderCopy = (isUncovered = false) => (
     <Animated.View
       style={[
-        styles.copy,
+        styles.copyFrame,
         {
-          left: getStyleLeft(rect.x, rect.width, root.width),
+          left: getStyleLeft(bounds.minX, bounds.width, root.width),
           top: rect.y,
-          width: rect.width,
-          height: rect.height,
+          width: bounds.width,
         },
-        animation.copyStyle,
         isUncovered && animation.uncoveredCopyStyle,
       ]}
     >
-      {menu.content}
+      <Animated.View
+        ref={isUncovered ? layout.uncoveredPreviewRef : layout.previewRef}
+        onLayout={hasPreview && !isUncovered ? layout.handlePreviewLayout : undefined}
+        style={[!hasPreview && { width: rect.width, height: rect.height }, animation.copyStyle]}
+      >
+        {renderContent(isUncovered || !isCovered)}
+      </Animated.View>
     </Animated.View>
   );
-
-  const handleMenuLayout = (event: LayoutChangeEvent) => {
-    const { width, height } = event.nativeEvent.layout;
-
-    const clippedPlacement = getMenuPlacement(
-      rect,
-      height,
-      root.height,
-      clippedInsets,
-      menu.placement,
-    );
-    const fits = clippedPlacement.minScroll === 0 && clippedPlacement.maxScroll === 0;
-
-    animation.open({
-      ...(fits
-        ? clippedPlacement
-        : getMenuPlacement(rect, height, root.height, insets, menu.placement)),
-      ...getMenuPosition({
-        rect,
-        menuWidth: width,
-        rootWidth: root.width,
-        insets,
-        placement: menu.placement,
-        alignment: menu.alignment,
-      }),
-    });
-  };
 
   const handleItemPress = (item: PeekMenuItem) => {
     if (item.disabled) {
@@ -164,14 +159,14 @@ export function PeekMenuOverlay({
           renderCopy()
         )}
         <Animated.View
-          onLayout={handleMenuLayout}
+          onLayout={layout.handleMenuLayout}
           style={[
             styles.menu,
             {
               ...(menu.placement === 'top'
                 ? { bottom: root.height - rect.y + MENU_GAP }
                 : { top: rect.y + rect.height + MENU_GAP }),
-              maxWidth: getMenuMaxWidth(root.width, insets),
+              maxWidth: bounds.width,
             },
             animation.menuStyle,
           ]}
@@ -188,6 +183,20 @@ export function PeekMenuOverlay({
   );
 }
 
+function PreviewContent({
+  ref,
+  preview,
+}: {
+  ref?: Ref<() => void>;
+  preview: (props: PeekMenuPreviewProps) => ReactNode;
+}) {
+  const [isOpened, setIsOpened] = useState(false);
+
+  useImperativeHandle(ref, () => () => setIsOpened(true), []);
+
+  return preview({ isOpened });
+}
+
 const styles = StyleSheet.create({
   clip: {
     position: 'absolute',
@@ -201,8 +210,9 @@ const styles = StyleSheet.create({
     right: 0,
     left: 0,
   },
-  copy: {
+  copyFrame: {
     position: 'absolute',
+    alignItems: 'center',
     pointerEvents: 'none',
   },
   menu: {

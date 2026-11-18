@@ -10,5 +10,7 @@ export type {
   PeekMenuInsets,
   PeekMenuItem,
   PeekMenuPlacement,
+  PeekMenuPreview,
+  PeekMenuPreviewProps,
   PeekMenuRenderProps,
 } from './types';
