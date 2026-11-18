@@ -56,7 +56,10 @@ overlay goes into a host view inside that component instead, with its own `Gestu
 since the container can be another window. The container stays mounted, and the host lets touches
 through. Each `PeekMenu` reaches the provider through the context from `usePeekMenu`. A row in a
 long list pays for its `PeekMenu` on every mount and render, so the original has no animated style
-of its own: the open menu hides or moves it with `setNativeProps` on its animated ref.
+of its own: the open menu hides or moves it with `setNativeProps` on its animated ref. It must stay
+an `Animated.View`: Reanimated hands values that stopped changing back to the component's React
+state and drops them natively, so on a plain `View` the next React commit would show the original
+again under the copy.
 
 Opening:
 

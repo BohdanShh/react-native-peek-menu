@@ -1,5 +1,5 @@
 import { useRef, type ReactNode } from 'react';
-import { Pressable, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable, type StyleProp, type View, type ViewStyle } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useAnimatedRef, type AnimatedRef } from 'react-native-reanimated';
 
@@ -202,10 +202,10 @@ function HoldTrigger({
 
   return (
     <GestureDetector gesture={gesture}>
-      <View ref={viewRef} collapsable={false} style={style}>
+      <Animated.View ref={viewRef} collapsable={false} style={style}>
         {/* The scale stays on an inner view so it doesn't skew the measured rect. */}
         <Animated.View style={animatedStyle}>{children}</Animated.View>
-      </View>
+      </Animated.View>
     </GestureDetector>
   );
 }
@@ -232,10 +232,10 @@ function PressTrigger({
   };
 
   return (
-    <View ref={viewRef} collapsable={false} style={style}>
+    <Animated.View ref={viewRef} collapsable={false} style={style}>
       <Pressable disabled={disabled} onPress={handlePress}>
         {children}
       </Pressable>
-    </View>
+    </Animated.View>
   );
 }
